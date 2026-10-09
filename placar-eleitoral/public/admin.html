@@ -190,7 +190,15 @@
       }
     });
 
-    function iniciar() {
+    async function iniciar() {
+      // No Firebase não há /api/eventos: o painel consulta o placar a cada 4 s.
+      const noFirebase = await fetch("/__/firebase/init.json").then((r) => r.ok).catch(() => false);
+      if (noFirebase) {
+        const buscar = () => api("/api/placar").then(render).catch(() => {});
+        buscar();
+        setInterval(buscar, 4000);
+        return;
+      }
       const es = new EventSource("/api/eventos");
       es.addEventListener("placar", (e) => render(JSON.parse(e.data)));
     }

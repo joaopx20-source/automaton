@@ -87,6 +87,27 @@ cole os comentários, um por linha. Colar a mesma lista de novo não duplica vot
 
 Rotas de admin exigem o cabeçalho `x-admin-token`. Os dados ficam em `data/placar.json`.
 
+## Publicar no Firebase
+
+O site também roda no Firebase, sem servidor próprio:
+
+- **Hosting** serve as páginas (`public/`).
+- **Firestore** guarda votos e postagens; o placar público lê `placar/resumo` em tempo real.
+- **Cloud Functions** (`functions/`): `api` atende o painel em `/api/*` e `sincronizarComentarios` lê as APIs das redes a cada minuto.
+
+Requisitos: projeto no Firebase no **plano Blaze** (as Functions exigem; há cota grátis) e um banco Firestore criado.
+
+```bash
+cd placar-eleitoral
+firebase login                 # no Cloud Shell: firebase login --no-localhost
+firebase use --add             # escolha o projeto
+cd functions && npm install && cp .env.example .env && nano .env && cd ..
+firebase deploy
+```
+
+As chaves das redes e a senha do painel (`ADMIN_TOKEN`) ficam em `functions/.env`, que não vai para o GitHub.
+O endereço do site aparece no fim do deploy (`https://SEU-PROJETO.web.app`); o painel fica em `/admin`.
+
 ## Aviso legal
 
 Isto é uma **enquete informal de engajamento**, não pesquisa eleitoral. A Resolução TSE nº 23.600/2019

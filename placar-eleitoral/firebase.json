@@ -1,0 +1,22 @@
+{
+  "hosting": {
+    "public": "public",
+    "cleanUrls": true,
+    "ignore": ["**/.*"],
+    "rewrites": [
+      { "source": "/api/**", "function": { "functionId": "api", "region": "southamerica-east1" } }
+    ],
+    "headers": [
+      { "source": "**/*.@(js|css)", "headers": [{ "key": "Cache-Control", "value": "max-age=300" }] }
+    ]
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22",
+    "ignore": ["node_modules", "test", ".env.example"],
+    "predeploy": ["rm -rf \"$RESOURCE_DIR/lib\" && cp -r \"$PROJECT_DIR/lib\" \"$RESOURCE_DIR/lib\""]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

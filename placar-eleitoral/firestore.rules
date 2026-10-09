@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Só o placar público pode ser lido pelo navegador.
+    // Todo o resto (postagens, comentários contados) é acessado apenas pelas Cloud Functions.
+    match /placar/resumo {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

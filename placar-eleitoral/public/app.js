@@ -131,9 +131,37 @@ function render(d) {
   $("atualizado").textContent = new Date(d.atualizadoEm).toLocaleTimeString("pt-BR");
 }
 
+// No Firebase Hosting o placar vem direto do Firestore (documento placar/resumo), em tempo real.
+const VAZIO = { totais: { lula: 0, flavio: 0, ignorados: 0, total: 0, pctLula: 0, pctFlavio: 0 }, porRede: {}, postagens: [], feed: [] };
+function carregarScript(src) {
+  return new Promise((ok, falha) => {
+    const s = document.createElement("script");
+    s.src = src; s.onload = ok; s.onerror = falha;
+    document.head.appendChild(s);
+  });
+}
+async function conectarFirebase(aoVivo) {
+  let config;
+  try {
+    const r = await fetch("/__/firebase/init.json");
+    if (!r.ok) return false;
+    config = await r.json();
+  } catch { return false; }
+  const versao = "10.14.1";
+  await carregarScript(`https://www.gstatic.com/firebasejs/${versao}/firebase-app-compat.js`);
+  await carregarScript(`https://www.gstatic.com/firebasejs/${versao}/firebase-firestore-compat.js`);
+  firebase.initializeApp(config);
+  firebase.firestore().doc("placar/resumo").onSnapshot(
+    (s) => { aoVivo.classList.remove("desconectado"); render({ ...VAZIO, atualizadoEm: new Date().toISOString(), ...(s.data() || {}) }); },
+    () => aoVivo.classList.add("desconectado"),
+  );
+  return true;
+}
+
 // Conexão em tempo real (reconecta sozinha; cai para polling se SSE não existir).
-function conectar() {
+async function conectar() {
   const aoVivo = document.querySelector(".ao-vivo");
+  if (await conectarFirebase(aoVivo)) return;
   if (!("EventSource" in window)) {
     const buscar = () => fetch("/api/placar").then((r) => r.json()).then(render).catch(() => {});
     buscar();
