@@ -23,9 +23,16 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 FPS = 30
 SR = 44100
-OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "videos")
+OUT_DIR = os.environ.get("KAVIX_OUT_DIR") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "videos")
 
 URL = "kavixbrasil.com.br"
+
+# Gravações reais do jogo: coloque aqui arquivos chamados celular.* e pc.*
+# (mp4, webm, mov...). Veja o README.
+GAMEPLAY_DIR = os.environ.get("KAVIX_GAMEPLAY_DIR") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "gameplay")
+VIDEO_EXT = (".mp4", ".webm", ".mov", ".mkv", ".m4v", ".avi")
 
 FONT_CANDIDATES = [
     "/usr/share/fonts/opentype/inter/InterDisplay-Black.otf",
@@ -779,6 +786,265 @@ def scene_cta(headline=("CADASTRE-SE", "AGORA"),
     return f
 
 
+# ----------------------------------------------------------- gameplay real
+
+def find_clip(kind):
+    """Procura gameplay/<kind>.<ext> (kind = 'celular' ou 'pc')."""
+    if not os.path.isdir(GAMEPLAY_DIR):
+        return None
+    for f in sorted(os.listdir(GAMEPLAY_DIR)):
+        base, ext = os.path.splitext(f)
+        if base.lower() == kind and ext.lower() in VIDEO_EXT:
+            return os.path.join(GAMEPLAY_DIR, f)
+    return None
+
+
+def has_gameplay():
+    return bool(find_clip("celular") and find_clip("pc"))
+
+
+def clip_duration(path):
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                        "format=duration", "-of", "csv=p=0", path],
+                       capture_output=True, text=True)
+    try:
+        return float(r.stdout.strip())
+    except ValueError:
+        return 0.0
+
+
+_open_clips = []
+
+
+class Clip:
+    """Lê um vídeo quadro a quadro, já cortado para w x h, em loop."""
+
+    def __init__(self, path, w, h, start=0.0):
+        self.path, self.w, self.h = path, int(w), int(h)
+        dur = clip_duration(path)
+        self.start = start % max(0.1, dur - 1.0) if dur > 1.5 else 0.0
+        self.proc = None
+        self.idx = -1
+        self.img = Image.new("RGB", (self.w, self.h), (0, 0, 0))
+
+    def _open(self):
+        vf = (f"scale={self.w}:{self.h}:force_original_aspect_ratio=increase,"
+              f"crop={self.w}:{self.h},fps={FPS}")
+        self.proc = subprocess.Popen(
+            ["ffmpeg", "-loglevel", "error", "-stream_loop", "-1",
+             "-ss", f"{self.start:.2f}", "-i", self.path, "-vf", vf, "-an",
+             "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+            stdout=subprocess.PIPE)
+        _open_clips.append(self)
+
+    def get(self, t):
+        if self.proc is None:
+            self._open()
+        want = int(t * FPS)
+        n = self.w * self.h * 3
+        while self.idx < want:
+            buf = self.proc.stdout.read(n)
+            if len(buf) < n:
+                break
+            self.img = Image.frombytes("RGB", (self.w, self.h), buf)
+            self.idx += 1
+        return self.img
+
+    def close(self):
+        if self.proc:
+            self.proc.kill()
+            self.proc.wait()
+            self.proc = None
+
+
+def close_clips():
+    while _open_clips:
+        _open_clips.pop().close()
+
+
+_frame_cache = {}
+
+
+def device_frame(kind, sw, sh):
+    """Moldura de celular/monitor para uma tela sw x sh.
+
+    Retorna (corpo, sobreposição, (x, y) da tela, máscara da tela)."""
+    key = (kind, sw, sh)
+    if key in _frame_cache:
+        return _frame_cache[key]
+    ss = 2
+    if kind == "celular":
+        b = int(sw * 0.045)
+        W, H = sw + 2 * b, sh + 2 * b
+        r = int(W * 0.13)
+        body, d = _canvas(W * ss, H * ss)
+        d.rounded_rectangle((0, 0, W * ss - 1, H * ss - 1), r * ss,
+                            fill=(20, 20, 30), outline=GOLD1,
+                            width=max(2, int(W * 0.012)) * ss)
+        over, d = _canvas(W * ss, H * ss)
+        d.rounded_rectangle((W * 0.36 * ss, (b + sh * 0.012) * ss,
+                             W * 0.64 * ss, (b + sh * 0.035) * ss),
+                            sh * 0.012 * ss, fill=(10, 10, 15))
+        sr = int(r * 0.75)
+        pos = (b, b)
+    else:
+        b = int(sw * 0.025)
+        stand = int(sh * 0.32)
+        W, H = sw + 2 * b, sh + 2 * b + stand
+        body, d = _canvas(W * ss, H * ss)
+        d.polygon([(W * 0.42 * ss, (sh + 2 * b) * ss),
+                   (W * 0.58 * ss, (sh + 2 * b) * ss),
+                   (W * 0.61 * ss, (H - stand * 0.18) * ss),
+                   (W * 0.39 * ss, (H - stand * 0.18) * ss)],
+                  fill=(45, 45, 65))
+        d.rounded_rectangle((W * 0.28 * ss, (H - stand * 0.22) * ss,
+                             W * 0.72 * ss, H * ss - 1), 10 * ss,
+                            fill=(60, 60, 85), outline=GOLD1, width=3 * ss)
+        d.rounded_rectangle((0, 0, W * ss - 1, (sh + 2 * b) * ss),
+                            int(sw * 0.015) * ss, fill=(20, 20, 30),
+                            outline=GOLD1, width=max(2, int(W * 0.005)) * ss)
+        over, _ = _canvas(W * ss, H * ss)
+        sr = int(sw * 0.006)
+        pos = (b, b)
+    body = body.resize((W, H), Image.LANCZOS)
+    over = over.resize((W, H), Image.LANCZOS)
+    mask = rounded_box((sw, sh), max(1, sr), (255, 255, 255, 255)) \
+        .getchannel("A")
+    _frame_cache[key] = (body, over, pos, mask)
+    return _frame_cache[key]
+
+
+def device_with_clip(kind, clip, t, sw, sh):
+    body, over, (x, y), mask = device_frame(kind, sw, sh)
+    im = body.copy()
+    scr = clip.get(t).convert("RGBA")
+    scr.putalpha(mask)
+    im.alpha_composite(scr, (x, y))
+    im.alpha_composite(over)
+    return im
+
+
+def device_glow(im, color, radius):
+    g = Image.new("RGBA", (im.width + 4 * radius, im.height + 4 * radius),
+                  color + (0,))
+    a = Image.new("L", g.size, 0)
+    a.paste(im.getchannel("A"), (2 * radius, 2 * radius))
+    a = a.filter(ImageFilter.GaussianBlur(radius))
+    g.putalpha(a.point(lambda v: min(255, int(v * 1.4))))
+    return g
+
+
+def real_tag(img, c, alpha):
+    """Selo 'GAMEPLAY REAL' piscando no canto."""
+    if alpha <= 0:
+        return
+    x, y = c.W - 40 * c.u, (150 if c.vertical else 40) * c.u
+    lay = text_layer("GAMEPLAY REAL", 34 * c.u, path=FONT_BOLD, fill=WHITE)
+    box = rounded_box((lay.width + int(60 * c.u), lay.height + int(10 * c.u)),
+                      int(lay.height * 0.6), (200, 20, 60, 230))
+    composite_center(box, lay, box.width / 2 + 18 * c.u, box.height / 2)
+    if int(time_blink(img) * 2) % 2 == 0:
+        dot = rounded_box((int(18 * c.u), int(18 * c.u)), int(9 * c.u),
+                          (255, 255, 255, 255))
+        composite_center(box, dot, 26 * c.u, box.height / 2)
+    composite(img, set_alpha(box, alpha), x - box.width, y)
+
+
+def time_blink(img):
+    return getattr(img, "_kavix_t", 0.0)
+
+
+def scene_gameplay(kind, headline, sub=None, start=0.0):
+    """Um aparelho grande mostrando a gravação real do jogo."""
+    clips = {}
+
+    def f(img, t, dur, c):
+        if kind == "celular":
+            sh = int(c.H * (0.54 if c.vertical else 0.56))
+            sw = int(sh * 0.462)
+        else:
+            sw = int(min(c.W * 0.88, c.H * (0.5 if c.vertical else 0.4) * 16 / 9))
+            sh = int(sw * 9 / 16)
+        if "c" not in clips:
+            clips["c"] = Clip(find_clip(kind), sw, sh, start)
+        ea = exit_alpha(t, dur)
+        dev = device_with_clip(kind, clips["c"], t, sw, sh)
+        k = ease_out_back(prog(t, 0.0, 0.45))
+        s = lerp(0.4, 1.0, k) * (1 + 0.012 * math.sin(t * 2.5))
+        cy = c.cy + (40 if kind == "celular" else 10) * c.u * c.sp
+        glow = device_glow(dev, CYAN if kind == "celular" else MAGENTA,
+                           int(28 * c.u))
+        composite_center(img, set_alpha(scaled(glow, s), 0.8 * ea), c.cx, cy)
+        composite_center(img, set_alpha(scaled(dev, s), ea), c.cx, cy)
+        draw_text(img, headline, c.cx,
+                  cy - dev.height * s / 2 - 85 * c.u * (1 if c.vertical else 0.6),
+                  (110 if c.vertical else 80) * c.u * lerp(1.6, 1, k),
+                  clamp01(t / 0.12) * ea, max_w=c.max_w, **GOLD_STYLE)
+        if sub and t > 0.5:
+            lt = t - 0.5
+            draw_text(img, sub, c.cx,
+                      cy + dev.height * s / 2 + 70 * c.u * (1 if c.vertical else 0.55),
+                      (66 if c.vertical else 50) * c.u,
+                      clamp01(lt / 0.15) * ea, max_w=c.max_w, **CYAN_STYLE)
+        real_tag(img, c, clamp01(t / 0.2) * ea)
+    return f
+
+
+def scene_gameplay_both(headline="JOGUE ONDE QUISER", sub=None,
+                        starts=(4.0, 4.0)):
+    """Celular e monitor lado a lado, cada um com sua gravação."""
+    clips = {}
+
+    def f(img, t, dur, c):
+        if c.vertical:
+            msw = int(c.W * 0.7)
+        else:
+            msw = int(min(c.W * 0.5, c.H * 0.4 * 16 / 9))
+        msh = int(msw * 9 / 16)
+        psh = int(msh * (1.25 if c.vertical else 1.15))
+        psw = int(psh * 0.462)
+        if not clips:
+            clips["pc"] = Clip(find_clip("pc"), msw, msh, starts[1])
+            clips["celular"] = Clip(find_clip("celular"), psw, psh, starts[0])
+        ea = exit_alpha(t, dur)
+        mon = device_with_clip("pc", clips["pc"], t, msw, msh)
+        ph = device_with_clip("celular", clips["celular"], t, psw, psh)
+        float_ = math.sin(t * 3) * 10 * c.u
+        km = ease_out_back(prog(t, 0.1, 0.55))
+        kp = ease_out_back(prog(t, 0.3, 0.75))
+        iy = c.y(20 if c.vertical else -10)
+        if c.vertical:
+            mx = lerp(c.W * 1.4, c.cx + c.W * 0.1, km)
+            px = lerp(-c.W * 0.4, c.cx - c.W * 0.3, kp)
+            py = iy + mon.height * 0.25
+        else:
+            mx = lerp(c.W * 1.4, c.cx + mon.width * 0.18, km)
+            px = lerp(-c.W * 0.4, c.cx - mon.width * 0.55, kp)
+            py = iy + 20 * c.u
+        composite_center(img, set_alpha(mon, ea), mx, iy + float_)
+        composite_center(img, set_alpha(ph, ea), px, py - float_)
+        top = min(iy - mon.height / 2, py - ph.height / 2)
+        bottom = max(iy + mon.height / 2, py + ph.height / 2)
+        draw_text(img, headline, c.cx, top - 80 * c.u,
+                  (100 if c.vertical else 76) * c.u,
+                  clamp01(t / 0.15) * ea, max_w=c.max_w, **WHITE_STYLE)
+        if sub and t > 0.9:
+            k = ease_out_back((t - 0.9) / 0.3)
+            draw_text(img, sub, c.cx, bottom + 70 * c.u,
+                      (70 if c.vertical else 54) * c.u * lerp(1.6, 1, k),
+                      clamp01((t - 0.9) / 0.1) * ea, max_w=c.max_w,
+                      **GOLD_STYLE)
+        real_tag(img, c, clamp01(t / 0.2) * ea)
+    return f
+
+
+def scene_platforms_auto(headline, sub=None):
+    """Usa gameplay real quando existir; senão, a arte desenhada."""
+    if has_gameplay():
+        return scene_gameplay_both(headline, sub)
+    return scene_platforms(headline, sub)
+
+
 def footer(img, t, c, alpha):
     if alpha <= 0:
         return
@@ -958,7 +1224,7 @@ def spec_hype(W, H):
         (0.0, 1.0, scene_lines([("PREPARADO?", 150, 0, {})], glitch=True)),
         (1.0, 2.5, scene_countdown()),
         (2.5, 5.0, scene_logo("O JOGO QUE TODO MUNDO TÁ JOGANDO")),
-        (5.0, 8.0, scene_platforms("JOGUE ONDE QUISER", "NO CELULAR OU NO PC")),
+        (5.0, 8.0, scene_platforms_auto("JOGUE ONDE QUISER", "NO CELULAR OU NO PC")),
         (8.0, 11.0, scene_chest("ITENS EXCLUSIVOS", top_text="SÓ PRA QUEM SE CADASTRA")),
         (11.0, 16.0, scene_cta()),
     ]
@@ -976,7 +1242,7 @@ def spec_plataformas(W, H):
     scenes = [
         (0.0, 1.5, scene_lines([("UM JOGO.", 150, -60, WHITE_STYLE),
                                 ("DUAS TELAS.", 150, 110, GOLD_STYLE)])),
-        (1.5, 4.5, scene_platforms("CELULAR OU COMPUTADOR?", "VOCÊ ESCOLHE!")),
+        (1.5, 4.5, scene_platforms_auto("CELULAR OU COMPUTADOR?", "VOCÊ ESCOLHE!")),
         (4.5, 6.5, scene_logo("ENTRA E JOGA")),
         (6.5, 9.0, scene_lines([("CADASTRO NOVO", 110, -80, WHITE_STYLE),
                                 ("= ITENS EXCLUSIVOS", 110, 80, GOLD_STYLE)])),
@@ -1033,7 +1299,38 @@ def spec_desafio(W, H):
                 footer_from=0.0, footer_to=4.4)
 
 
+def spec_gameplay(W, H):
+    """Mostra o jogo de verdade: celular, PC, os dois, prêmios e CTA."""
+    scenes = [
+        (0.0, 1.6, scene_lines([("VEJA O KAVIX", 130, -80, WHITE_STYLE),
+                                ("EM AÇÃO!", 170, 90, GOLD_STYLE)])),
+        (1.6, 6.6, scene_gameplay("celular", "NO CELULAR", "JOGUE EM QUALQUER LUGAR",
+                                  start=2.0)),
+        (6.6, 11.6, scene_gameplay("pc", "NO COMPUTADOR", "NA TELA GRANDE",
+                                   start=2.0)),
+        (11.6, 14.6, scene_gameplay_both("VOCÊ ESCOLHE ONDE JOGAR",
+                                         "CELULAR OU PC", starts=(9.0, 9.0))),
+        (14.6, 17.0, scene_chest("ITENS EXCLUSIVOS", open_at=0.7,
+                                 top_text="CADASTRE-SE E GANHE")),
+        (17.0, 22.0, scene_cta()),
+    ]
+    events = [("whoosh", 0.0), ("whoosh", 0.18), ("impact", 1.6),
+              ("whoosh", 6.5), ("impact", 6.6), ("whoosh", 11.5),
+              ("whoosh", 11.8), ("coin", 15.3), ("sparkle", 15.35),
+              ("impact", 17.0), ("whoosh", 17.35)]
+    return dict(dur=22.0, bpm=122, drop=1.6, prog="AFCG", scenes=scenes,
+                events=events, flashes=[1.6, 6.6, 11.6, 15.3, 17.0],
+                rays=[(14.6, 17.0), (17.0, 22.0)], seed=5,
+                footer_from=1.6, footer_to=17.0)
+
+
+# Vídeos que só fazem sentido com gravações reais do jogo.
+NEEDS_GAMEPLAY = {"gameplay", "gameplay_feed", "gameplay_youtube"}
+
 VIDEOS = {
+    "gameplay": (spec_gameplay, 1080, 1920),
+    "gameplay_feed": (spec_gameplay, 1080, 1080),
+    "gameplay_youtube": (spec_gameplay, 1920, 1080),
     # nome: (spec, largura, altura)
     "hype": (spec_hype, 1080, 1920),
     "plataformas": (spec_plataformas, 1080, 1920),
@@ -1067,6 +1364,7 @@ def render(name):
         ray_a = max([clamp01((t - a) / 0.3) * (1 - prog(t, b - 0.2, b))
                      for a, b in s["rays"] if a <= t < b] or [0])
         img = bg.render(t, rays=ray_a * 0.9)
+        img._kavix_t = t
         for a, b, fn in s["scenes"]:
             if a <= t < b:
                 fn(img, t - a, b - a, c)
@@ -1093,6 +1391,7 @@ def render(name):
         proc.stdin.write(frame.tobytes())
     proc.stdin.close()
     proc.wait()
+    close_clips()
     os.remove(wav)
     if proc.returncode:
         raise RuntimeError(f"ffmpeg falhou em {name}")
@@ -1104,6 +1403,16 @@ def main():
     for n in names:
         if n not in VIDEOS:
             sys.exit(f"vídeo desconhecido: {n} (opções: {', '.join(VIDEOS)})")
+    if not has_gameplay():
+        skip = [n for n in names if n in NEEDS_GAMEPLAY]
+        if skip:
+            print(f"aviso: sem gravações em {GAMEPLAY_DIR} (celular.* e pc.*);"
+                  f" pulando {', '.join(skip)}")
+        names = [n for n in names if n not in NEEDS_GAMEPLAY]
+    else:
+        print("usando gameplay real:", find_clip("celular"), find_clip("pc"))
+    if not names:
+        return
     with Pool(min(len(names), os.cpu_count() or 1)) as pool:
         for path in pool.imap_unordered(render, names):
             print("ok:", path)
