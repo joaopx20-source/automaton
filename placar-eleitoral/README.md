@@ -9,6 +9,10 @@ Cada comentário vale **1 voto**: `13` → Lula, `22` → Flávio.
 - Atualização ao vivo (Server-Sent Events), barra de disputa, placar por rede, lista de postagens e feed dos últimos votos.
 - Sem dependências: só Node.js 18+.
 
+| Desktop | Celular |
+|---|---|
+| ![Desktop](docs/desktop.png) | ![Celular](docs/celular.png) |
+
 ## Rodar
 
 ```bash
