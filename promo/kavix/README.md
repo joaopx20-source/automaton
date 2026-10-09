@@ -1,35 +1,70 @@
 # Vídeos promocionais KAVIX
 
-Vídeos curtos para divulgar o **KAVIX** ([kavixbrasil.com.br](https://kavixbrasil.com.br/)),
+Vídeos curtos para divulgar o **KAVIX ARCADE** ([kavixbrasil.com.br](https://kavixbrasil.com.br/)),
 que roda no celular e no computador, com a chamada **"Cadastre-se agora e ganhe itens exclusivos"**.
 
-Tudo (arte, animação e trilha sonora) é gerado por código. Não há imagens nem
-músicas de terceiros, então não tem risco de direitos autorais.
+Eles usam a **jogabilidade real** dos jogos gravados (11 dos mais de 20 jogos do site), a partir das gravações de tela
+em `gameplay/`, sempre em **velocidade 2x**. O jogo aparece dentro de um
+celular (só a área do jogo, em pé) e dentro de um monitor (o navegador inteiro,
+com a barra de endereço). Arte, animações e trilha sonora são geradas por
+código, então não há música nem imagem de terceiros.
+
+O visual segue o tema do site: fundo azul-marinho escuro, botão em degradê
+roxo → ciano (como "Jogar de novo"), etiquetas em pílula (como "FIM DE JOGO" e
+"+XP no passe"), o mascote de coroa e a tela final no formato do cartão
+"Fim de jogo". As cores ficam nas constantes `BG`, `CARD`, `VIOLET`, `SKY`
+etc., no topo de `gerar_videos.py`.
 
 ## Vídeos (`videos/`)
 
-| Arquivo | Formato | Duração | Onde postar | Roteiro |
-|---|---|---|---|---|
-| `kavix_hype_1080x1920.mp4` | 9:16 | 16s | Reels, TikTok, Shorts, Stories | "Preparado?" → 3-2-1 → logo → celular e PC → baú de itens → CTA |
-| `kavix_plataformas_1080x1920.mp4` | 9:16 | 15s | Reels, TikTok, Shorts | "Um jogo. Duas telas." → celular ou computador → "Cadastro novo = itens exclusivos" → CTA |
-| `kavix_itens_1080x1920.mp4` | 9:16 | 16s | Reels, TikTok, anúncios | "Atenção, jogador!" → baú abrindo → cartas de itens exclusivos → CTA |
-| `kavix_desafio_1080x1920.mp4` | 9:16 | 10s | Stories, anúncio rápido | "Seus amigos já tão jogando... E você?" → logo → CTA |
-| `kavix_hype_feed_1080x1080.mp4` | 1:1 | 16s | Feed Instagram/Facebook | Versão quadrada do vídeo hype |
-| `kavix_hype_youtube_1920x1080.mp4` | 16:9 | 16s | YouTube, Facebook, site | Versão horizontal do vídeo hype |
+### Com jogabilidade real
+
+| Arquivo | Formato | Duração | Roteiro |
+|---|---|---|---|
+| `kavix_arcade_1080x1920.mp4` | 9:16 | ~40s | "+20 jogos num só lugar!" → passa por **todos os jogos gravados** (celular e PC) → celular + PC → baú → CTA |
+| `kavix_arcade_feed_1080x1080.mp4` | 1:1 | ~40s | Mesmo roteiro, quadrado |
+| `kavix_arcade_youtube_1920x1080.mp4` | 16:9 | ~40s | Mesmo roteiro, horizontal |
+| `kavix_gameplay_1080x1920.mp4` | 9:16 | 22s | "Veja o KAVIX em ação!" → Espinhos no celular → Quebra Blocos no PC → os dois juntos → baú → CTA |
+| `kavix_gameplay_feed_1080x1080.mp4` | 1:1 | 22s | Mesmo roteiro, quadrado |
+| `kavix_gameplay_youtube_1920x1080.mp4` | 16:9 | 22s | Mesmo roteiro, horizontal |
+| `kavix_destaque_<jogo>_1080x1920.mp4` | 9:16 | 15s | Um vídeo por jogo: nome → jogo no celular → "também no PC" → CTA (11 vídeos) |
+
+Os destaques existem para: Espinhos, Passagem, Quebra Blocos, Três Pistas,
+Pega Tudo, Órbita, Reflexo, Troca Cor, Empilha, Cobrinha e Memória.
+
+### Com arte animada (e trecho de jogo real na cena "celular e PC")
+
+| Arquivo | Formato | Duração | Roteiro |
+|---|---|---|---|
+| `kavix_hype_1080x1920.mp4` | 9:16 | 16s | "Preparado?" → 3-2-1 → logo → celular e PC → baú → CTA |
+| `kavix_hype_feed_1080x1080.mp4` | 1:1 | 16s | Versão quadrada |
+| `kavix_hype_youtube_1920x1080.mp4` | 16:9 | 16s | Versão horizontal |
+| `kavix_plataformas_1080x1920.mp4` | 9:16 | 15s | "Um jogo. Duas telas." → celular ou computador → CTA |
+| `kavix_itens_1080x1920.mp4` | 9:16 | 16s | "Atenção, jogador!" → baú → cartas de itens exclusivos → CTA |
+| `kavix_desafio_1080x1920.mp4` | 9:16 | 10s | "Seus amigos já tão jogando... E você?" → CTA |
+
+Onde postar: 9:16 → Reels, TikTok, Shorts e Stories · 1:1 → feed do Instagram
+e do Facebook · 16:9 → YouTube, Facebook e site.
 
 ## Legendas prontas
+
+**Arcade / gameplay**
+> 🎮 Mais de 20 jogos num só lugar! Espinhos, Quebra Blocos, Cobrinha, Memória e muito mais.
+> Jogue no celular ou no PC 📱💻
+> Cadastre-se agora e ganhe itens exclusivos 🎁 👉 kavixbrasil.com.br
+> #kavix #kavixarcade #games #jogosonline #gamerbrasil #mobilegames
+
+**Destaque de um jogo** (troque o nome)
+> Quantos pontos você faz no Quebra Blocos? 🧱🔥
+> Jogue no celular ou no PC 👉 kavixbrasil.com.br
+> Cadastro novo ganha itens exclusivos 🎁
+> #kavix #kavixarcade #desafio #games #gamerbrasil
 
 **Hype**
 > 🎮 Chegou a hora! O KAVIX já está disponível no celular e no PC.
 > Cadastre-se agora e ganhe itens exclusivos 🎁
 > 👉 kavixbrasil.com.br
 > #kavix #games #jogosonline #gamerbrasil #mobilegames #pcgamer
-
-**Plataformas**
-> 📱💻 Celular ou computador? Você escolhe!
-> Crie sua conta no KAVIX e ganhe itens exclusivos.
-> 👉 kavixbrasil.com.br
-> #kavix #jogos #gamer #jogonocelular #pcgaming
 
 **Itens exclusivos**
 > 🎁 Presente pra você! Itens exclusivos só pra quem se cadastrar no KAVIX.
@@ -41,64 +76,45 @@ músicas de terceiros, então não tem risco de direitos autorais.
 > Bora pro KAVIX! Cadastro com itens exclusivos 👉 kavixbrasil.com.br
 > #kavix #bora #games #gamerbrasil
 
-## Vídeos com gameplay real (celular e PC)
+## Adicionar ou trocar gravações
 
-O gerador coloca gravações reais do jogo **dentro da tela do celular e do
-monitor**. Quando elas existem:
+### 1. Gravar
 
-- surgem 3 vídeos novos: `kavix_gameplay_1080x1920.mp4` (9:16),
-  `kavix_gameplay_feed_1080x1080.mp4` (1:1) e
-  `kavix_gameplay_youtube_1920x1080.mp4` (16:9), com 22s cada. O roteiro é:
-  "Veja o KAVIX em ação!" → jogo no celular → jogo no computador → os dois
-  lado a lado → baú de itens exclusivos → "Cadastre-se agora";
-- os vídeos *hype* e *plataformas* trocam a arte desenhada pelo jogo de verdade;
-- aparece o selo **GAMEPLAY REAL** no canto.
+O ideal é gravar a tela do PC com o jogo aberto no navegador, como nas
+gravações atuais. Grave bastante tempo de cada jogo (30s ou mais), porque os
+vídeos usam trechos diferentes de cada gravação.
 
-### 1. Conseguir as gravações (escolha uma opção)
-
-**A) Gravar você mesmo (melhor qualidade).**
-- Celular: use o gravador de tela do Android ou do iPhone enquanto joga.
-  Grave em pé (vertical) por 20 a 60 segundos, mostrando as melhores partes.
-- PC: use o OBS Studio, a Barra de Jogo do Windows (`Win + Alt + R`) ou outro
-  gravador, em 1920x1080.
-
-**B) Gravação automática do site** (precisa do Node + Playwright):
+Outra opção é a gravação automática do modo bot
+(`https://kavix-arcade.web.app/auto.html`), que pula de jogo em jogo com a tecla N:
 
 ```bash
-NODE_PATH="$(npm root -g)" node promo/kavix/gravar_gameplay.cjs 30
-# para abrir o navegador e você mesmo jogar enquanto grava:
-KAVIX_HEADED=1 NODE_PATH="$(npm root -g)" node promo/kavix/gravar_gameplay.cjs 60
+NODE_PATH="$(npm root -g)" node promo/kavix/gravar_auto.cjs 20 20   # 20 modos, 20s cada
 ```
 
-O script abre o site como um iPhone e depois como um PC 1920x1080. Ele tenta
-clicar em "Jogar" e salva `gameplay/celular.webm` e `gameplay/pc.webm`. Sem
-`KAVIX_HEADED=1`, as interações são cliques genéricos. Se o jogo pedir login
-ou tiver controles específicos, a opção A rende um vídeo melhor.
+Ela grava como iPhone e como PC em `gameplay/celular.webm` e `gameplay/pc.webm`,
+com os tempos de cada modo em `.json`. O gerador usa esses arquivos quando não
+existe `gameplay/jogos.json`.
 
-### 2. Colocar os arquivos na pasta
+### 2. Preparar
 
+```bash
+python3 promo/kavix/preparar_gravacoes.py "Espinhos=minha_gravacao1.mp4" "Cobrinha=gravacao2.mp4" ...
 ```
-promo/kavix/gameplay/celular.mp4   (ou .webm/.mov — gravação do celular)
-promo/kavix/gameplay/pc.mp4        (ou .webm/.mov — gravação do computador)
-```
+
+Para cada gravação, o script acha a área do jogo e corta o trecho de jogo
+ativo, sem a abertura escura e sem a tela de "fim de jogo". Depois gera
+`gameplay/jogos/<jogo>_celular.mp4` e `<jogo>_pc.mp4` e atualiza
+`gameplay/jogos.json`. Passe **todas** as gravações de uma vez, porque o
+`jogos.json` é reescrito a cada execução.
 
 ### 3. Gerar
 
 ```bash
-python3 promo/kavix/gerar_videos.py
+python3 promo/kavix/gerar_videos.py                 # todos
+python3 promo/kavix/gerar_videos.py arcade desafio  # só alguns
+KAVIX_SPEED=1 python3 promo/kavix/gerar_videos.py   # jogo em velocidade normal
 ```
 
-As gravações são cortadas e encaixadas automaticamente e tocam em loop se
-forem curtas. O som delas é descartado e entra a trilha do vídeo.
-
-## Como gerar de novo / editar
-
-Precisa de `python3`, `pillow`, `numpy` e `ffmpeg`.
-
-```bash
-python3 promo/kavix/gerar_videos.py              # gera todos
-python3 promo/kavix/gerar_videos.py desafio      # gera só um
-```
-
-Os textos de cada vídeo ficam nas funções `spec_*` de `gerar_videos.py`. Para
-trocar uma frase, edite a string e rode de novo. A URL fica na constante `URL`.
+Precisa de `python3`, `pillow`, `numpy` e `ffmpeg`. Os textos de cada vídeo
+ficam nas funções `spec_*` de `gerar_videos.py`. A quantidade de jogos
+mostrada no vídeo arcade fica em `TOTAL_JOGOS`.

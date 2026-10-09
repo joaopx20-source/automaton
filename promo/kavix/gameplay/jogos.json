@@ -1,0 +1,123 @@
+[
+  {
+    "nome": "Espinhos",
+    "celular": "jogos/espinhos_celular.mp4",
+    "pc": "jogos/espinhos_pc.mp4",
+    "duracao": 25.4,
+    "origem": "4ca084b4-2026-09-29_19-23-35.mp4",
+    "trecho": [
+      1.3,
+      26.7
+    ]
+  },
+  {
+    "nome": "Passagem",
+    "celular": "jogos/passagem_celular.mp4",
+    "pc": "jogos/passagem_pc.mp4",
+    "duracao": 11.65,
+    "origem": "7cd97e4c-2026-09-29_19-24-12.mp4",
+    "trecho": [
+      1.8,
+      13.45
+    ]
+  },
+  {
+    "nome": "Quebra Blocos",
+    "celular": "jogos/quebra_blocos_celular.mp4",
+    "pc": "jogos/quebra_blocos_pc.mp4",
+    "duracao": 72.4,
+    "origem": "9c4f593e-2026-09-29_19-25-22.mp4",
+    "trecho": [
+      7.3,
+      79.7
+    ]
+  },
+  {
+    "nome": "Três Pistas",
+    "celular": "jogos/tres_pistas_celular.mp4",
+    "pc": "jogos/tres_pistas_pc.mp4",
+    "duracao": 20.65,
+    "origem": "e8ffd001-2026-09-29_19-26-57.mp4",
+    "trecho": [
+      1.55,
+      22.2
+    ]
+  },
+  {
+    "nome": "Pega Tudo",
+    "celular": "jogos/pega_tudo_celular.mp4",
+    "pc": "jogos/pega_tudo_pc.mp4",
+    "duracao": 31.4,
+    "origem": "0915f986-2026-09-29_19-27-27.mp4",
+    "trecho": [
+      1.3,
+      32.7
+    ]
+  },
+  {
+    "nome": "Órbita",
+    "celular": "jogos/orbita_celular.mp4",
+    "pc": "jogos/orbita_pc.mp4",
+    "duracao": 15.4,
+    "origem": "9f7a191d-2026-09-29_19-28-06.mp4",
+    "trecho": [
+      1.05,
+      16.45
+    ]
+  },
+  {
+    "nome": "Reflexo",
+    "celular": "jogos/reflexo_celular.mp4",
+    "pc": "jogos/reflexo_pc.mp4",
+    "duracao": 61.9,
+    "origem": "32432faf-2026-09-29_19-28-33.mp4",
+    "trecho": [
+      1.3,
+      63.2
+    ]
+  },
+  {
+    "nome": "Troca Cor",
+    "celular": "jogos/troca_cor_celular.mp4",
+    "pc": "jogos/troca_cor_pc.mp4",
+    "duracao": 22.65,
+    "origem": "7c947d60-2026-09-29_19-30-21.mp4",
+    "trecho": [
+      1.3,
+      23.95
+    ]
+  },
+  {
+    "nome": "Empilha",
+    "celular": "jogos/empilha_celular.mp4",
+    "pc": "jogos/empilha_pc.mp4",
+    "duracao": 11.65,
+    "origem": "a08009d6-2026-09-29_19-30-50.mp4",
+    "trecho": [
+      1.3,
+      12.95
+    ]
+  },
+  {
+    "nome": "Cobrinha",
+    "celular": "jogos/cobrinha_celular.mp4",
+    "pc": "jogos/cobrinha_pc.mp4",
+    "duracao": 12.15,
+    "origem": "f7f4e452-2026-09-29_19-31-12.mp4",
+    "trecho": [
+      1.3,
+      13.45
+    ]
+  },
+  {
+    "nome": "Memória",
+    "celular": "jogos/memoria_celular.mp4",
+    "pc": "jogos/memoria_pc.mp4",
+    "duracao": 50.9,
+    "origem": "f8f7977c-2026-09-29_19-31-35.mp4",
+    "trecho": [
+      1.55,
+      52.45
+    ]
+  }
+]

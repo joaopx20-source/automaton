@@ -17,7 +17,7 @@ const { chromium, devices } = require('playwright');
 
 const URL = process.env.KAVIX_URL || 'https://kavixbrasil.com.br/';
 const HEADED = process.env.KAVIX_HEADED === '1';
-const SECS = Number(process.argv[2] || 25);
+const SECS = Number(process.argv[2] || 60);
 const OUT = path.join(__dirname, 'gameplay');
 
 const PLAY_TEXT = /jogar|play|come[cç]ar|iniciar|start|entrar/i;
@@ -65,14 +65,9 @@ async function record(name, contextOpts, touch) {
     args: ['--autoplay-policy=no-user-gesture-required'],
   });
   const vp = contextOpts.viewport;
-  const scale = contextOpts.deviceScaleFactor || 1;
   const context = await browser.newContext({
     ...contextOpts,
-    recordVideo: {
-      dir: tmp,
-      size: { width: Math.round(vp.width * Math.min(scale, 2)),
-              height: Math.round(vp.height * Math.min(scale, 2)) },
-    },
+    recordVideo: { dir: tmp, size: { width: vp.width, height: vp.height } },
   });
   const page = await context.newPage();
   console.log(`[${name}] abrindo ${URL}`);
@@ -92,7 +87,11 @@ async function record(name, contextOpts, touch) {
 }
 
 (async () => {
-  const { defaultBrowserType, ...phone } = devices['iPhone 13'];
+  // viewport maior e escala 1: o vídeo do Playwright grava em pixels CSS,
+  // então a escala 3 do iPhone só deixaria bordas cinzas na gravação.
+  const { defaultBrowserType, ...iphone } = devices['iPhone 13'];
+  const phone = { ...iphone, viewport: { width: 540, height: 1170 },
+                  screen: { width: 540, height: 1170 }, deviceScaleFactor: 1 };
   await record('celular', phone, true);
   await record('pc', { viewport: { width: 1920, height: 1080 } }, false);
 })().catch((e) => {
