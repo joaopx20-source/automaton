@@ -122,6 +122,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 16px 32px; position: relati
   -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%); mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
   filter: contrast(1.06) saturate(1.05);
 }
+.credito {
+  position: absolute; z-index: 3; right: 12px; bottom: 18%;
+  font-size: .68rem; letter-spacing: .04em; color: #fff; opacity: .45;
+  text-shadow: 0 1px 3px #000; pointer-events: none; display: none;
+}
+.retrato.com-foto .credito { display: block; }
 .canto { position: absolute; z-index: 2; width: 28px; height: 28px; border: 3px solid #fff; }
 .lula .canto { border-color: var(--neon-l); filter: drop-shadow(0 0 6px var(--neon-l)); }
 .flavio .canto { border-color: var(--neon-f); filter: drop-shadow(0 0 6px var(--neon-f)); }

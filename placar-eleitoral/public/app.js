@@ -29,6 +29,8 @@ document.querySelectorAll(".retrato img").forEach((img) => {
   const fila = (img.dataset.fontes || "").split(",").filter(Boolean);
   const proxima = () => (fila.length ? (img.src = fila.shift()) : silhueta(img));
   img.addEventListener("error", proxima);
+  img.addEventListener("load", () => img.closest(".retrato").classList.add("com-foto"));
+  if (img.complete && img.naturalWidth) img.closest(".retrato").classList.add("com-foto");
   if (img.complete && !img.naturalWidth) proxima();
 });
 
