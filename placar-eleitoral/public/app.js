@@ -15,19 +15,21 @@ const fmt = new Intl.NumberFormat("pt-BR");
 const fmtPct = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-// Foto ausente => avatar com iniciais nas cores do candidato.
-document.querySelectorAll(".foto img").forEach((img) => {
-  const trocar = () => {
-    const lula = img.closest(".lula");
-    const [c1, c2, txt] = lula ? ["#ff3b47", "#7a0000", "#fff"] : ["#ffdf00", "#009c3b", "#002776"];
-    img.outerHTML = `<svg class="avatar" viewBox="0 0 100 100" role="img" aria-label="${esc(img.alt)}">
-      <defs><linearGradient id="g${c1.slice(1)}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
-      <rect width="100" height="100" fill="url(#g${c1.slice(1)})"/>
-      <circle cx="50" cy="40" r="17" fill="${txt}" opacity=".35"/><path d="M18 96c3-20 17-30 32-30s29 10 32 30z" fill="${txt}" opacity=".35"/>
-      <text x="50" y="58" text-anchor="middle" font-family="Anton, Impact, sans-serif" font-size="30" fill="${txt}">${esc(img.dataset.iniciais)}</text></svg>`;
-  };
-  if (img.complete && !img.naturalWidth) trocar();
-  else img.addEventListener("error", trocar, { once: true });
+// Foto: tenta img/<nome>.png, depois .jpg e .webp; se nenhuma existir, mostra uma silhueta.
+function silhueta(img) {
+  const lula = !!img.closest(".lula");
+  const [c1, c2] = lula ? ["#ff6b74", "#3d0006"] : ["#6dffaa", "#00210d"];
+  const id = lula ? "sl" : "sf";
+  img.outerHTML = `<svg class="avatar" viewBox="0 0 80 100" preserveAspectRatio="xMidYMax meet" role="img" aria-label="${esc(img.alt)} (foto não adicionada)">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}" stop-opacity=".9"/><stop offset="1" stop-color="${c2}" stop-opacity=".9"/></linearGradient></defs>
+    <ellipse cx="40" cy="34" rx="15" ry="18" fill="url(#${id})"/>
+    <path d="M33 50h14v8l17 6c8 3 12 10 13 20v16H3V84c1-10 5-17 13-20l17-6z" fill="url(#${id})"/></svg>`;
+}
+document.querySelectorAll(".retrato img").forEach((img) => {
+  const fila = (img.dataset.fontes || "").split(",").filter(Boolean);
+  const proxima = () => (fila.length ? (img.src = fila.shift()) : silhueta(img));
+  img.addEventListener("error", proxima);
+  if (img.complete && !img.naturalWidth) proxima();
 });
 
 // Animação de contagem dos números.

@@ -6,61 +6,76 @@
   <title>Placar das Redes · Lula × Flávio</title>
   <meta name="description" content="Contagem em tempo real de comentários nas redes sociais: 13 Lula × 22 Flávio Bolsonaro.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Exo+2:wght@400;600;800&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Fundo dividido: vermelho (Lula) à esquerda, verde (Flávio) à direita, de cima a baixo -->
+  <div class="palco" aria-hidden="true">
+    <div class="metade esq"><div class="estrelas"></div></div>
+    <div class="metade dir">
+      <svg class="bandeira" viewBox="0 0 200 140" preserveAspectRatio="xMidYMid slice">
+        <polygon points="100,12 188,70 100,128 12,70" fill="#ffdf00"/>
+        <circle cx="100" cy="70" r="34" fill="#002776"/>
+        <path d="M67 64 Q100 52 133 76" stroke="#fff" stroke-width="5" fill="none"/>
+      </svg>
+    </div>
+    <div class="grade-hud"></div>
+    <div class="costura"></div>
+  </div>
+
   <header class="topo">
     <div class="ao-vivo"><span class="pulso"></span> AO VIVO</div>
     <h1>Placar das Redes</h1>
-    <p class="sub">Cada comentário nas postagens vale <strong>1 voto</strong> · <span id="total-comentarios">0</span> votos contados</p>
+    <p class="sub">Cada comentário vale <strong>1 voto</strong> · <span id="total-comentarios">0</span> votos contados</p>
   </header>
 
   <main>
     <section class="arena">
       <!-- LULA: esquerda, vermelho, PT -->
       <article class="lado lula" id="card-lula">
-        <div class="fundo-estrelas" aria-hidden="true"></div>
         <div class="partido">
           <svg class="logo-pt" viewBox="0 0 100 100" aria-label="PT">
             <polygon points="50,4 61.8,38.2 97.6,38.2 68.5,59.4 79.4,93.6 50,72.4 20.6,93.6 31.5,59.4 2.4,38.2 38.2,38.2" fill="#e30613" stroke="#fff" stroke-width="3"/>
-            <text x="50" y="66" text-anchor="middle" font-family="Anton, Impact, sans-serif" font-size="32" fill="#fff">PT</text>
+            <text x="50" y="66" text-anchor="middle" font-family="Orbitron, Impact, sans-serif" font-weight="900" font-size="26" fill="#fff">PT</text>
           </svg>
           <span>Partido dos Trabalhadores</span>
         </div>
-        <div class="foto">
-          <img src="img/lula.jpg" alt="Lula" data-iniciais="L">
+        <div class="retrato">
+          <img src="img/lula.png" data-fontes="img/lula.jpg,img/lula.webp" alt="Lula">
+          <i class="canto c1"></i><i class="canto c2"></i><i class="canto c3"></i><i class="canto c4"></i>
+          <div class="scan" aria-hidden="true"></div>
         </div>
-        <h2>LULA</h2>
-        <div class="numero">13</div>
-        <div class="pct"><span id="pct-lula">0</span><small>%</small></div>
-        <div class="votos"><span id="votos-lula">0</span> votos</div>
+        <div class="dados">
+          <h2>LULA</h2>
+          <div class="numero">13</div>
+          <div class="pct"><span id="pct-lula">0</span><small>%</small></div>
+          <div class="votos"><span id="votos-lula">0</span> votos</div>
+        </div>
       </article>
 
-      <div class="versus" aria-hidden="true">VS</div>
+      <div class="versus" aria-hidden="true"><span>VS</span></div>
 
-      <!-- FLÁVIO: direita, verde, PL, bandeira do Brasil -->
+      <!-- FLÁVIO: direita, verde, PL -->
       <article class="lado flavio" id="card-flavio">
-        <svg class="bandeira-fundo" viewBox="0 0 200 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <rect width="200" height="140" fill="#009c3b"/>
-          <polygon points="100,12 188,70 100,128 12,70" fill="#ffdf00"/>
-          <circle cx="100" cy="70" r="34" fill="#002776"/>
-          <path d="M67 64 Q100 52 133 76" stroke="#fff" stroke-width="5" fill="none"/>
-        </svg>
         <div class="partido">
           <svg class="logo-pl" viewBox="0 0 100 100" aria-label="PL">
             <circle cx="50" cy="50" r="46" fill="#ffdf00" stroke="#fff" stroke-width="3"/>
-            <text x="50" y="66" text-anchor="middle" font-family="Anton, Impact, sans-serif" font-size="44" fill="#002776">PL</text>
+            <text x="50" y="63" text-anchor="middle" font-family="Orbitron, Impact, sans-serif" font-weight="900" font-size="34" fill="#002776">PL</text>
           </svg>
           <span>Partido Liberal</span>
         </div>
-        <div class="foto">
-          <img src="img/flavio.jpg" alt="Flávio Bolsonaro" data-iniciais="FB">
+        <div class="retrato">
+          <img src="img/flavio.png" data-fontes="img/flavio.jpg,img/flavio.webp" alt="Flávio Bolsonaro">
+          <i class="canto c1"></i><i class="canto c2"></i><i class="canto c3"></i><i class="canto c4"></i>
+          <div class="scan" aria-hidden="true"></div>
         </div>
-        <h2>FLÁVIO BOLSONARO</h2>
-        <div class="numero">22</div>
-        <div class="pct"><span id="pct-flavio">0</span><small>%</small></div>
-        <div class="votos"><span id="votos-flavio">0</span> votos</div>
+        <div class="dados">
+          <h2>FLÁVIO BOLSONARO</h2>
+          <div class="numero">22</div>
+          <div class="pct"><span id="pct-flavio">0</span><small>%</small></div>
+          <div class="votos"><span id="votos-flavio">0</span> votos</div>
+        </div>
       </article>
     </section>
 
@@ -95,13 +110,14 @@
 
     <section class="bloco como">
       <h3>Como funciona</h3>
-      <p>Os comentários das postagens abaixo são lidos automaticamente. Cada comentário vira <strong>um voto</strong> conforme as palavras que usa:</p>
+      <p>Os comentários das postagens são lidos automaticamente. Cada comentário vira <strong>um voto</strong> conforme as palavras que usa:</p>
       <div class="regras">
         <div class="regra lula"><strong>Conta para Lula:</strong> 13, Lula, Lulinha, PT, petista, “Faz o L”, #Lula13, 1️⃣3️⃣, ⭐… e também “Fora Bolsonaro”, “Ele não”.</div>
         <div class="regra flavio"><strong>Conta para Flávio:</strong> 22, Flávio, Bolsonaro, Mito, PL, #Flavio22, 🇧🇷… e também “Fora Lula”, “Fora PT”.</div>
       </div>
       <p class="mini">Comentários sem termos associados ou que citam os dois lados por igual são ignorados (<span id="ignorados">0</span> até agora).</p>
       <form class="testar" id="form-testar">
+        <label class="sr" for="texto-teste">Testar um comentário</label>
         <input id="texto-teste" placeholder="Teste um comentário, ex.: “Faz o L 13!!”" maxlength="300">
         <button>Testar</button>
         <output id="resultado-teste"></output>
@@ -111,6 +127,7 @@
 
   <footer>
     <p><strong>Enquete informal de engajamento em redes sociais.</strong> Não é pesquisa eleitoral: não usa amostragem, não tem margem de erro e não representa a intenção de voto do eleitorado.</p>
+    <p class="mini" id="creditos-fotos"></p>
     <p class="mini">Atualizado <span id="atualizado">—</span> · <a href="/admin">Painel</a></p>
   </footer>
 

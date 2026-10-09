@@ -29,10 +29,15 @@ e o ID sozinho e passa a ler os comentários a cada 30 s.
 
 ### Fotos
 
-Coloque as imagens em `public/img/lula.jpg` e `public/img/flavio.jpg` (quadradas, ~600×600).
-Enquanto não existirem, aparece um avatar com as iniciais. Use fotos que você tenha direito de usar
-(fotos oficiais com licença livre ou arte própria). Os selos de PT e PL são desenhos simples
-em SVG dentro do `index.html`; troque pelos logos oficiais se tiver autorização.
+Coloque as fotos em `public/img/`:
+
+- `lula.png` (ou `.jpg` / `.webp`): lado esquerdo
+- `flavio.png` (ou `.jpg` / `.webp`): lado direito
+
+Use retrato vertical (proporção 4:5, cerca de 800×1000), com o rosto no terço de cima. PNG com fundo
+removido fica melhor: a foto "flutua" sobre o fundo vermelho ou verde. Sem foto, aparece uma silhueta.
+Use fotos com licença que permita o uso (ex.: retratos oficiais da Agência Senado ou da Presidência, com crédito no rodapé).
+Os selos de PT e PL são desenhos simples em SVG no `index.html`; troque pelos logos oficiais se tiver autorização.
 
 ## Como os comentários viram votos
 
