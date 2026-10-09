@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel · Placar das Redes</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    main { max-width: 980px; }
+    label { display: block; font-weight: 600; font-size: .9rem; margin: 10px 0 4px; }
+    input, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--borda); background: var(--fundo); color: var(--texto); font: inherit; }
+    textarea { min-height: 140px; resize: vertical; }
+    .linha { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+    .acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+    .botao.sec { background: var(--borda); color: var(--texto); }
+    .botao.perigo { background: #4a1418; color: #ffb4b9; }
+    .botao.peq { padding: 6px 10px; font-size: .85rem; }
+    .msg { font-size: .9rem; }
+    .msg.ok { color: #4ade80; } .msg.erro { color: #ff6b73; }
+    .cred { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cred span { padding: 4px 10px; border-radius: 99px; font-size: .85rem; border: 1px solid var(--borda); }
+    .cred .sim { border-color: #009c3b; color: #4ade80; }
+    .cred .nao { color: var(--apagado); }
+    .post { border: 1px solid var(--borda); border-radius: 12px; padding: 12px; margin-top: 10px; }
+    .post .cab { display: flex; gap: 10px; align-items: center; }
+    .post .cab .info { flex: 1; min-width: 0; }
+    .post .titulo { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+    .post .meta { color: var(--apagado); font-size: .8rem; word-break: break-all; }
+    .post .erro { color: #ffb86b; font-size: .85rem; margin-top: 6px; }
+    .post details { margin-top: 8px; }
+    .post summary { cursor: pointer; color: var(--apagado); font-size: .9rem; }
+    #login { max-width: 420px; margin: 40px auto; }
+    @media (max-width: 640px) { .linha { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <h1>Painel do Placar</h1>
+    <p class="sub"><a href="/">← ver placar público</a></p>
+  </header>
+
+  <main>
+    <section class="bloco" id="login">
+      <h3>Entrar</h3>
+      <p class="mini">Use o token de administrador mostrado no terminal ao iniciar o servidor (ou o valor de <code>ADMIN_TOKEN</code>).</p>
+      <form id="form-login">
+        <label for="token">Token</label>
+        <input id="token" type="password" autocomplete="current-password" required>
+        <div class="acoes"><button class="botao">Entrar</button><span class="msg" id="msg-login"></span></div>
+      </form>
+    </section>
+
+    <div id="painel" hidden>
+      <section class="bloco">
+        <h3>Adicionar postagem</h3>
+        <form id="form-add">
+          <div class="linha">
+            <div>
+              <label for="url">Link da postagem</label>
+              <input id="url" type="url" required placeholder="https://www.instagram.com/p/…  ·  https://x.com/…/status/…">
+            </div>
+            <div>
+              <label for="titulo">Título (opcional)</label>
+              <input id="titulo" placeholder="Ex.: Live de domingo">
+            </div>
+            <div>
+              <label for="idApi">ID na API (opcional)</label>
+              <input id="idApi" placeholder="Só se o link não bastar">
+            </div>
+          </div>
+          <div class="acoes"><button class="botao">Adicionar ao placar</button><span class="msg" id="msg-add"></span></div>
+        </form>
+        <p class="mini">Aceita Facebook, Instagram, X (Twitter), TikTok e YouTube. Com a credencial da rede configurada, os comentários são lidos automaticamente a cada <span id="intervalo">30</span>s. Sem credencial, use “Importar comentários” em cada postagem.</p>
+        <div class="cred" id="cred"></div>
+      </section>
+
+      <section class="bloco">
+        <h3>Postagens (<span id="qtd">0</span>)</h3>
+        <div id="lista"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const NOMES = { facebook: "Facebook", instagram: "Instagram", x: "X", tiktok: "TikTok", youtube: "YouTube" };
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    let token = "";
+    try { token = localStorage.getItem("placar-token") || ""; } catch {}
+
+    async function api(caminho, opcoes = {}) {
+      const r = await fetch(caminho, {
+        ...opcoes,
+        headers: { "content-type": "application/json", "x-admin-token": token, ...(opcoes.headers || {}) },
+      });
+      const corpo = await r.json().catch(() => ({}));
+      if (!r.ok) throw Object.assign(new Error(corpo.erro || `Erro ${r.status}`), { status: r.status });
+      return corpo;
+    }
+
+    function msg(el, texto, tipo) { el.textContent = texto; el.className = `msg ${tipo || ""}`; }
+
+    async function entrar() {
+      try {
+        await api("/api/admin/verificar");
+        try { localStorage.setItem("placar-token", token); } catch {}
+        $("login").hidden = true;
+        $("painel").hidden = false;
+        iniciar();
+      } catch (e) {
+        if (token) msg($("msg-login"), "Token inválido.", "erro");
+      }
+    }
+
+    $("form-login").addEventListener("submit", (e) => { e.preventDefault(); token = $("token").value.trim(); entrar(); });
+
+    $("form-add").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg($("msg-add"), "Adicionando…");
+      try {
+        const r = await api("/api/postagens", { method: "POST", body: JSON.stringify({ url: $("url").value, titulo: $("titulo").value, idApi: $("idApi").value }) });
+        msg($("msg-add"), `Adicionada (${r.rede}${r.idPostagem ? ` · ID ${r.idPostagem}` : " · ID não identificado"}).`, "ok");
+        $("form-add").reset();
+      } catch (err) { msg($("msg-add"), err.message, "erro"); }
+    });
+
+    let abertos = new Set();
+    function render(d) {
+      $("intervalo").textContent = d.intervalo;
+      $("cred").innerHTML = Object.entries(d.credenciais).map(([r, ok]) =>
+        `<span class="${ok ? "sim" : "nao"}">${ok ? "✓" : "○"} ${NOMES[r]} ${ok ? "automático" : "manual"}</span>`).join("");
+      $("qtd").textContent = d.postagens.length;
+
+      // Não redesenha enquanto o usuário digita numa área de importação.
+      if (document.activeElement?.tagName === "TEXTAREA") return;
+      document.querySelectorAll("#lista details[open]").forEach((el) => abertos.add(el.dataset.id));
+      $("lista").innerHTML = d.postagens.length ? d.postagens.slice().reverse().map((p) => `
+        <div class="post">
+          <div class="cab">
+            <div class="info">
+              <a class="titulo" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.titulo || p.url)}</a>
+              <div class="meta">${NOMES[p.rede]} · ID ${esc(p.idPostagem || "?")}${p.idApi ? ` · API ${esc(p.idApi)}` : ""} · ${p.ultimaSync ? `sync ${new Date(p.ultimaSync).toLocaleTimeString("pt-BR")}` : "nunca sincronizado"}</div>
+            </div>
+            <div class="placar"><span class="l">${p.votos.lula}</span> × <span class="f">${p.votos.flavio}</span> <span class="mini">(${p.votos.ignorados} ign.)</span></div>
+          </div>
+          ${p.erro ? `<div class="erro">⚠ ${esc(p.erro)}</div>` : ""}
+          <div class="acoes">
+            ${p.demo ? "" : `<button class="botao sec peq" data-sync="${p.id}">Sincronizar agora</button>`}
+            <button class="botao perigo peq" data-del="${p.id}">Remover</button>
+          </div>
+          <details data-id="${p.id}" ${abertos.has(p.id) ? "open" : ""}>
+            <summary>Importar comentários manualmente</summary>
+            <p class="mini">Cole os comentários, <strong>um por linha</strong> (copiados da postagem ou exportados de outra ferramenta). Colar a mesma lista de novo não duplica votos.</p>
+            <textarea data-txt="${p.id}" placeholder="13&#10;Faz o L&#10;22 mito&#10;…"></textarea>
+            <div class="acoes"><button class="botao peq" data-imp="${p.id}">Importar</button><span class="msg" data-msg="${p.id}"></span></div>
+          </details>
+        </div>`).join("") : `<p class="mini">Nenhuma postagem ainda.</p>`;
+    }
+
+    $("lista").addEventListener("toggle", (e) => {
+      if (e.target.tagName === "DETAILS" && !e.target.open) abertos.delete(e.target.dataset.id);
+    }, true);
+
+    $("lista").addEventListener("click", async (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      try {
+        if (b.dataset.del) {
+          if (!confirm("Remover esta postagem e todos os votos dela do placar?")) return;
+          await api(`/api/postagens/${b.dataset.del}`, { method: "DELETE" });
+        } else if (b.dataset.sync) {
+          b.disabled = true; b.textContent = "Sincronizando…";
+          await api(`/api/postagens/${b.dataset.sync}/sincronizar`, { method: "POST" }).catch(() => {});
+        } else if (b.dataset.imp) {
+          const id = b.dataset.imp;
+          const area = document.querySelector(`[data-txt="${id}"]`);
+          const r = await api(`/api/postagens/${id}/comentarios`, { method: "POST", body: JSON.stringify({ texto: area.value }) });
+          area.value = "";
+          b.blur();
+          setTimeout(() => {
+            const m = document.querySelector(`[data-msg="${id}"]`);
+            if (m) msg(m, `${r.lidos} linha(s) lida(s), ${r.novos} voto(s) novo(s).`, "ok");
+          }, 400);
+        }
+      } catch (err) {
+        if (err.status === 401) location.reload();
+        alert(err.message);
+      }
+    });
+
+    function iniciar() {
+      const es = new EventSource("/api/eventos");
+      es.addEventListener("placar", (e) => render(JSON.parse(e.data)));
+    }
+
+    if (token) entrar();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "placar-eleitoral",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Placar em tempo real Lula x Flávio Bolsonaro a partir de comentários em redes sociais",
+  "type": "module",
+  "main": "server.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "demo": "DEMO=1 node server.js",
+    "test": "node --test test/*.test.js"
+  }
+}
