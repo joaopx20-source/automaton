@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Administrador do placar (usuário criado no Firebase Authentication).
     function ehAdmin() {
-      return request.auth != null && request.auth.uid == 'UID_DO_ADMIN';
+      return request.auth != null && request.auth.uid == 'ltIum5SBH4fcaDhwYmdYQQyvUL23';
     }
 
     // O placar público pode ser lido por qualquer pessoa; só o admin escreve.
