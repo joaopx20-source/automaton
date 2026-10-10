@@ -1,12 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Só o placar público pode ser lido pelo navegador.
-    // Todo o resto (postagens, comentários contados) é acessado apenas pelas Cloud Functions.
+    // Administrador do placar (usuário criado no Firebase Authentication).
+    function ehAdmin() {
+      return request.auth != null && request.auth.uid == 'UID_DO_ADMIN';
+    }
+
+    // O placar público pode ser lido por qualquer pessoa; só o admin escreve.
     match /placar/resumo {
       allow read: if true;
-      allow write: if false;
+      allow write: if ehAdmin();
     }
+
+    // Postagens e comentários já contados: só o admin (painel) lê e escreve.
+    match /postagens/{postagem} {
+      allow read, write: if ehAdmin();
+      match /vistos/{pedaco} {
+        allow read, write: if ehAdmin();
+      }
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

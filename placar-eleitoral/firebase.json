@@ -2,19 +2,35 @@
   "hosting": {
     "public": "public",
     "cleanUrls": true,
-    "ignore": ["**/.*"],
-    "rewrites": [
-      { "source": "/api/**", "function": { "functionId": "api", "region": "southamerica-east1" } }
+    "ignore": [
+      "**/.*"
     ],
     "headers": [
-      { "source": "**/*.@(js|css)", "headers": [{ "key": "Cache-Control", "value": "max-age=300" }] }
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=300"
+          }
+        ]
+      }
+    ],
+    "predeploy": [
+      "mkdir -p \"$PROJECT_DIR/public/fb/lib/connectors\" && cp \"$PROJECT_DIR\"/lib/classifier.js \"$PROJECT_DIR\"/lib/keywords.js \"$PROJECT_DIR\"/lib/links.js \"$PROJECT_DIR/public/fb/lib/\" && cp \"$PROJECT_DIR/lib/connectors/index.js\" \"$PROJECT_DIR/public/fb/lib/connectors/\" && cp \"$PROJECT_DIR/functions/placar.js\" \"$PROJECT_DIR/public/fb/\""
     ]
   },
   "functions": {
     "source": "functions",
     "runtime": "nodejs22",
-    "ignore": ["node_modules", "test", ".env.example"],
-    "predeploy": ["rm -rf \"$RESOURCE_DIR/lib\" && cp -r \"$PROJECT_DIR/lib\" \"$RESOURCE_DIR/lib\""]
+    "ignore": [
+      "node_modules",
+      "test",
+      ".env.example"
+    ],
+    "predeploy": [
+      "rm -rf \"$RESOURCE_DIR/lib\" && cp -r \"$PROJECT_DIR/lib\" \"$RESOURCE_DIR/lib\""
+    ]
   },
   "firestore": {
     "rules": "firestore.rules"

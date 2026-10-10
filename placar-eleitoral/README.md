@@ -87,26 +87,34 @@ cole os comentários, um por linha. Colar a mesma lista de novo não duplica vot
 
 Rotas de admin exigem o cabeçalho `x-admin-token`. Os dados ficam em `data/placar.json`.
 
-## Publicar no Firebase
+## Publicar no Firebase (plano gratuito)
 
-O site também roda no Firebase, sem servidor próprio:
+O site roda no plano gratuito (Spark) do Firebase, sem servidor:
 
 - **Hosting** serve as páginas (`public/`).
 - **Firestore** guarda votos e postagens; o placar público lê `placar/resumo` em tempo real.
-- **Cloud Functions** (`functions/`): `api` atende o painel em `/api/*` e `sincronizarComentarios` lê as APIs das redes a cada minuto.
-
-Requisitos: projeto no Firebase no **plano Blaze** (as Functions exigem; há cota grátis) e um banco Firestore criado.
+- **Authentication** protege o painel: só o usuário admin grava no banco (veja `firestore.rules`).
+- O **painel `/admin`** faz o papel do servidor (`public/fb/admin-firebase.js`): grava no Firestore e,
+  enquanto estiver aberto, lê os comentários de YouTube, Facebook e Instagram a cada 2 minutos.
+  As chaves dessas redes são digitadas no painel e ficam só naquele navegador.
+  X e TikTok não aceitam leitura pelo navegador: use a importação manual.
 
 ```bash
 cd placar-eleitoral
-firebase login                 # no Cloud Shell: firebase login --no-localhost
-firebase use --add             # escolha o projeto
-cd functions && npm install && cp .env.example .env && nano .env && cd ..
-firebase deploy
+firebase deploy --only hosting,firestore
 ```
 
-As chaves das redes e a senha do painel (`ADMIN_TOKEN`) ficam em `functions/.env`, que não vai para o GitHub.
-O endereço do site aparece no fim do deploy (`https://SEU-PROJETO.web.app`); o painel fica em `/admin`.
+Antes do primeiro deploy: ative **Authentication → E-mail/senha** no console, crie o usuário
+`admin@placar-das-redes.app` e troque `UID_DO_ADMIN` em `firestore.rules` pelo UID dele.
+
+Limites do plano gratuito do Firestore: 50 mil leituras e 20 mil gravações por dia. Cada visitante
+com o placar aberto gasta 1 leitura por atualização; com muito tráfego a cota pode acabar no dia
+(o placar para de atualizar até o dia seguinte, sem cobrança).
+
+### Com plano Blaze (opcional)
+
+`functions/` tem a mesma lógica como Cloud Functions (`api` e `sincronizarComentarios`), que leem as
+redes a cada minuto sem depender do painel aberto, incluindo o X. Exige o plano Blaze.
 
 ## Aviso legal
 
