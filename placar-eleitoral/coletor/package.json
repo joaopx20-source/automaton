@@ -1,0 +1,14 @@
+{
+  "name": "placar-coletor",
+  "private": true,
+  "type": "module",
+  "description": "Coletor 24h do Placar das Redes: lê os comentários nas redes e atualiza o placar no Firebase",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node coletor.js",
+    "uma-vez": "node coletor.js --uma-vez"
+  },
+  "dependencies": {
+    "firebase": "^13.0.0"
+  }
+}

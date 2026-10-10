@@ -111,6 +111,25 @@ Limites do plano gratuito do Firestore: 50 mil leituras e 20 mil gravações por
 com o placar aberto gasta 1 leitura por atualização; com muito tráfego a cota pode acabar no dia
 (o placar para de atualizar até o dia seguinte, sem cobrança).
 
+## Coletor 24h no seu computador (grátis)
+
+Para posts grandes (centenas de milhares de comentários) ou para não depender do painel aberto,
+rode o coletor no seu computador. Ele lê as redes e atualiza o placar no Firebase, sem custo.
+
+1. Instale o **Node.js LTS** (nodejs.org).
+2. Baixe este repositório (botão **Code → Download ZIP** no GitHub) e abra a pasta `placar-eleitoral/coletor`.
+3. **Windows:** clique duas vezes em `iniciar-windows.bat`. Na primeira vez ele abre o `.env` no
+   Bloco de Notas: preencha `ADMIN_SENHA` (a senha do painel) e as chaves das redes, salve e rode de novo.
+   **Mac/Linux:** `npm install`, `cp .env.example .env`, edite o `.env` e rode `npm start`.
+4. Deixe a janela aberta e o computador ligado (desative a suspensão automática).
+
+Enquanto o coletor está ligado, o painel mostra "Coletor 24h ligado" e para de coletar sozinho.
+Os comentários já contados ficam em `coletor/dados/`; se apagar essa pasta, o coletor recupera a
+lista do Firebase e não reconta nada. A importação manual pelo painel continua funcionando.
+
+Ritmo: a cada 60 s. No YouTube, 6 páginas de 100 comentários antigos por minuto, o que cabe na cota
+grátis diária (cerca de 860 mil comentários por dia). X e TikTok precisam de chaves pagas ou aprovadas.
+
 ### Com plano Blaze (opcional)
 
 `functions/` tem a mesma lógica como Cloud Functions (`api` e `sincronizarComentarios`), que leem as

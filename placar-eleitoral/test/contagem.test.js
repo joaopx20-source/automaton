@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { aplicarComentarios, distribuirEmPedacos, montarResumo, linhasParaComentarios, chaveSegura } from "../placar.js";
+import { aplicarComentarios, distribuirEmPedacos, montarResumo, linhasParaComentarios, chaveSegura } from "../lib/contagem.js";
 
 const base = () => ({ vistos: new Set(), autores: new Set(), votos: { lula: 0, flavio: 0, ignorados: 0 }, rede: "x", postagemId: "p1" });
 

@@ -12,6 +12,11 @@ service cloud.firestore {
       allow write: if ehAdmin();
     }
 
+    // Sinal de vida do coletor 24h (só o admin).
+    match /placar/coletor {
+      allow read, write: if ehAdmin();
+    }
+
     // Postagens e comentários já contados: só o admin (painel) lê e escreve.
     match /postagens/{postagem} {
       allow read, write: if ehAdmin();

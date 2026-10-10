@@ -15,7 +15,7 @@ import { analisarLink, resolverLinkCurto, REDES } from "./lib/links.js";
 import { CONECTORES, credenciaisConfiguradas } from "./lib/connectors/index.js";
 import {
   aplicarComentarios, distribuirEmPedacos, montarResumo, postagemPublica, linhasParaComentarios, TAMANHO_FEED,
-} from "./placar.js";
+} from "./lib/contagem.js";
 
 setGlobalOptions({ region: "southamerica-east1", maxInstances: 3 });
 initializeApp();

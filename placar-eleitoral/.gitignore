@@ -2,4 +2,3 @@ data/*.json
 .env
 .firebase/
 public/fb/lib/
-public/fb/placar.js

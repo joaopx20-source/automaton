@@ -17,7 +17,7 @@
       }
     ],
     "predeploy": [
-      "mkdir -p \"$PROJECT_DIR/public/fb/lib/connectors\" && cp \"$PROJECT_DIR\"/lib/classifier.js \"$PROJECT_DIR\"/lib/keywords.js \"$PROJECT_DIR\"/lib/links.js \"$PROJECT_DIR/public/fb/lib/\" && cp \"$PROJECT_DIR\"/lib/connectors/*.js \"$PROJECT_DIR/public/fb/lib/connectors/\" && cp \"$PROJECT_DIR/functions/placar.js\" \"$PROJECT_DIR/public/fb/\""
+      "mkdir -p \"$PROJECT_DIR/public/fb/lib/connectors\" && cp \"$PROJECT_DIR\"/lib/*.js \"$PROJECT_DIR/public/fb/lib/\" && cp \"$PROJECT_DIR\"/lib/connectors/*.js \"$PROJECT_DIR/public/fb/lib/connectors/\""
     ]
   },
   "functions": {

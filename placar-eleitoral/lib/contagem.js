@@ -1,6 +1,6 @@
-// Regras de contagem usadas pelas Cloud Functions, sem dependência do Firebase
+// Regras de contagem compartilhadas (painel no Firebase, coletor 24h e Cloud Functions), sem dependência do Firebase
 // (assim podem ser testadas isoladamente). Mesmas regras do servidor Node (lib/store.js).
-import { classificar } from "./lib/classifier.js";
+import { classificar } from "./classifier.js";
 
 export const TAMANHO_FEED = 40;
 // Os IDs de comentários já contados ficam em documentos "pedaço" de até este tamanho

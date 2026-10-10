@@ -3,7 +3,7 @@
 // e, enquanto estiver aberto, lê os comentários nas APIs que aceitam chamadas do navegador
 // (YouTube, Facebook e Instagram). X e TikTok ficam com importação manual.
 //
-// Os arquivos ./placar.js e ./lib/* são copiados de functions/ e lib/ no deploy (veja firebase.json).
+// Os arquivos de ./lib/ são copiados de lib/ no deploy (veja firebase.json).
 
 const V = "10.14.1";
 const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
@@ -37,7 +37,7 @@ carregarChaves();
 const { classificar } = await import("./lib/classifier.js");
 const { analisarLink, REDES } = await import("./lib/links.js");
 const { CONECTORES, credenciaisConfiguradas } = await import("./lib/connectors/index.js");
-const { aplicarComentarios, distribuirEmPedacos, montarResumo, postagemPublica, TAMANHO_FEED } = await import("./placar.js");
+const { aplicarComentarios, distribuirEmPedacos, montarResumo, postagemPublica, TAMANHO_FEED } = await import("./lib/contagem.js");
 
 const config = await fetch("/__/firebase/init.json").then((r) => r.json());
 const app = initializeApp(config);
@@ -179,11 +179,26 @@ async function linhasParaComentarios(texto) {
 
 // ---------------- Coleta automática enquanto o painel está aberto ----------------
 
+// Se o coletor 24h (pasta coletor/) estiver rodando, ele cuida da leitura e o painel não coleta.
+export const COLETOR = doc(db, "placar", "coletor");
+export async function coletorAtivo() {
+  try {
+    const s = await getDoc(COLETOR);
+    return s.exists() && Date.now() - Date.parse(s.data().ativoEm) < 5 * 60 * 1000;
+  } catch { return false; }
+}
+
 let coletando = false;
 async function ciclo() {
   if (coletando || !auth.currentUser) return;
   coletando = true;
   try {
+    const status = document.getElementById("status-coleta");
+    if (await coletorAtivo()) {
+      if (status) status.textContent = "Coletor 24h ligado: ele está lendo as redes; este painel não precisa ficar aberto.";
+      return;
+    }
+    if (status) status.textContent = "Coleta pelo painel ativa (enquanto esta página estiver aberta).";
     const cred = credenciais();
     const posts = await getDocs(POSTAGENS);
     for (const d of posts.docs) if (cred[d.data().rede]) await sincronizar(d.id);
