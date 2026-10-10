@@ -59,7 +59,7 @@
           <div class="linha">
             <div>
               <label for="url">Link da postagem</label>
-              <input id="url" type="url" required placeholder="https://www.instagram.com/p/…  ·  https://x.com/…/status/…">
+              <input id="url" type="url" required placeholder="https://www.instagram.com/p/…  ·  https://www.facebook.com/…/posts/…">
             </div>
             <div>
               <label for="titulo">Título (opcional)</label>
@@ -72,17 +72,16 @@
           </div>
           <div class="acoes"><button class="botao">Adicionar ao placar</button><span class="msg" id="msg-add"></span></div>
         </form>
-        <p class="mini">Aceita Facebook, Instagram, X (Twitter), TikTok e YouTube. Com a credencial da rede configurada, os comentários são lidos automaticamente a cada <span id="intervalo">30</span>s. Sem credencial, use “Importar comentários” em cada postagem.</p>
+        <p class="mini">Aceita links do Instagram e do Facebook. Com a credencial da rede configurada, os comentários são lidos automaticamente a cada <span id="intervalo">30</span>s. Sem credencial, use “Importar comentários” em cada postagem.</p>
         <div class="cred" id="cred"></div>
       </section>
 
       <section class="bloco" id="bloco-chaves" hidden>
         <h3>Coleta automática neste computador</h3>
-        <p class="mini">No plano gratuito do Firebase, quem lê os comentários é este painel: enquanto ele estiver aberto, as postagens de YouTube, Facebook e Instagram são lidas a cada <strong>2 minutos</strong>. As chaves ficam salvas só neste navegador. X e TikTok não permitem leitura pelo navegador: use a importação manual.</p>
+        <p class="mini">No plano gratuito do Firebase, quem lê os comentários é este painel: enquanto ele estiver aberto, as postagens do Instagram e do Facebook são lidas a cada <strong>2 minutos</strong>. As chaves ficam salvas só neste navegador.</p>
         <p class="msg ok" id="status-coleta" role="status"></p>
         <form id="form-chaves">
           <div class="linha">
-            <div><label for="YOUTUBE_API_KEY">Chave da API do YouTube</label><input id="YOUTUBE_API_KEY" type="password" autocomplete="off"></div>
             <div><label for="FACEBOOK_PAGE_TOKEN">Token da Página (Facebook)</label><input id="FACEBOOK_PAGE_TOKEN" type="password" autocomplete="off"></div>
             <div><label for="FACEBOOK_PAGE_ID">ID da Página (Facebook)</label><input id="FACEBOOK_PAGE_ID" autocomplete="off"></div>
           </div>
@@ -103,7 +102,7 @@
   </main>
 
   <script>
-    const NOMES = { facebook: "Facebook", instagram: "Instagram", x: "X", tiktok: "TikTok", youtube: "YouTube" };
+    const NOMES = { facebook: "Facebook", instagram: "Instagram" };
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
     let token = "";

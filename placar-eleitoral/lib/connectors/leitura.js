@@ -8,7 +8,7 @@
 //   - depois:  (só listas crescentes) cursor que aponta para o fim desta página
 
 /**
- * Lista do mais novo para o mais antigo (YouTube, Instagram).
+ * Lista do mais novo para o mais antigo (Instagram).
  * 1) Lê do topo até alcançar o comentário mais novo já visto (novidades).
  * 2) Continua descendo pelos antigos a partir do cursor salvo, até chegar ao fim.
  */

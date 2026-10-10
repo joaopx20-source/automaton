@@ -1,7 +1,7 @@
 # Placar das Redes · Lula (13) × Flávio Bolsonaro (22)
 
 Site que mostra, em tempo real, um placar em **porcentagem e quantidade** a partir dos
-comentários de postagens no **Facebook, Instagram, X, TikTok** (e YouTube).
+comentários de postagens no **Instagram** e no **Facebook**.
 Cada comentário vale **1 voto**: `13` → Lula, `22` → Flávio.
 
 - Esquerda: **Lula**, tema vermelho, estrela do **PT**.
@@ -66,9 +66,6 @@ Copie `.env.example` para `.env` e preencha as redes que for usar.
 |---|---|---|
 | Facebook | Token de Página (`pages_read_engagement`) | Só posts de Páginas que você administra |
 | Instagram | Conta profissional + token (`instagram_manage_comments`) | Só posts da **sua** conta profissional |
-| X | Bearer token da API v2 com acesso a busca | `search/recent` cobre 7 dias; plano pago |
-| TikTok | Research API (client key/secret) | Acesso só para pesquisadores aprovados |
-| YouTube | Chave da Data API v3 | Qualquer vídeo público |
 
 **Sem credencial** (ou para posts de terceiros), use **Importar comentários manualmente** no painel:
 cole os comentários, um por linha. Colar a mesma lista de novo não duplica votos.
@@ -95,9 +92,8 @@ O site roda no plano gratuito (Spark) do Firebase, sem servidor:
 - **Firestore** guarda votos e postagens; o placar público lê `placar/resumo` em tempo real.
 - **Authentication** protege o painel: só o usuário admin grava no banco (veja `firestore.rules`).
 - O **painel `/admin`** faz o papel do servidor (`public/fb/admin-firebase.js`): grava no Firestore e,
-  enquanto estiver aberto, lê os comentários de YouTube, Facebook e Instagram a cada 2 minutos.
+  enquanto estiver aberto, lê os comentários do Instagram e do Facebook a cada 2 minutos.
   As chaves dessas redes são digitadas no painel e ficam só naquele navegador.
-  X e TikTok não aceitam leitura pelo navegador: use a importação manual.
 
 ```bash
 cd placar-eleitoral
@@ -127,13 +123,13 @@ Enquanto o coletor está ligado, o painel mostra "Coletor 24h ligado" e para de 
 Os comentários já contados ficam em `coletor/dados/`; se apagar essa pasta, o coletor recupera a
 lista do Firebase e não reconta nada. A importação manual pelo painel continua funcionando.
 
-Ritmo: a cada 60 s. No YouTube, 6 páginas de 100 comentários antigos por minuto, o que cabe na cota
-grátis diária (cerca de 860 mil comentários por dia). X e TikTok precisam de chaves pagas ou aprovadas.
+Ritmo: a cada 60 s, até 5 mil comentários por postagem em cada leitura; posts grandes entram aos
+poucos, continuando de onde a leitura anterior parou.
 
 ### Com plano Blaze (opcional)
 
 `functions/` tem a mesma lógica como Cloud Functions (`api` e `sincronizarComentarios`), que leem as
-redes a cada minuto sem depender do painel aberto, incluindo o X. Exige o plano Blaze.
+redes a cada minuto sem depender do painel aberto. Exige o plano Blaze.
 
 ## Aviso legal
 

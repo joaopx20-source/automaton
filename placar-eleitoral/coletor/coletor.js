@@ -24,8 +24,6 @@ function carregarEnv(arquivo) {
   }
 }
 carregarEnv(join(AQUI, ".env"));
-// A cota grátis do YouTube é de 10 mil páginas por dia: 6 páginas por minuto cabem nela.
-process.env.YOUTUBE_PAGINAS_POR_SYNC ||= "6";
 
 const { initializeApp } = await import("firebase/app");
 const { getAuth, signInWithEmailAndPassword } = await import("firebase/auth");

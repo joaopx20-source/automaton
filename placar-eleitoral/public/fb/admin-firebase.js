@@ -1,7 +1,7 @@
 // Painel no plano gratuito do Firebase (Spark): sem Cloud Functions.
 // O próprio painel faz o trabalho do servidor: grava no Firestore (com login do admin)
 // e, enquanto estiver aberto, lê os comentários nas APIs que aceitam chamadas do navegador
-// (YouTube, Facebook e Instagram). X e TikTok ficam com importação manual.
+// (Instagram e Facebook, pela Graph API da Meta).
 //
 // Os arquivos de ./lib/ são copiados de lib/ no deploy (veja firebase.json).
 
@@ -13,7 +13,7 @@ const {
 } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
 
 // Os conectores leem as chaves de process.env; no navegador elas vêm do localStorage deste computador.
-const CHAVES = ["YOUTUBE_API_KEY", "FACEBOOK_PAGE_TOKEN", "FACEBOOK_PAGE_ID", "INSTAGRAM_TOKEN", "INSTAGRAM_BUSINESS_ID"];
+const CHAVES = ["FACEBOOK_PAGE_TOKEN", "FACEBOOK_PAGE_ID", "INSTAGRAM_TOKEN", "INSTAGRAM_BUSINESS_ID"];
 globalThis.process = { env: {} };
 export function carregarChaves() {
   for (const k of CHAVES) {
@@ -49,7 +49,7 @@ export const EMAIL_ADMIN = "admin@placar-das-redes.app";
 export const INTERVALO_SEGUNDOS = 120;
 
 // Só estas redes aceitam chamadas direto do navegador.
-const REDES_NO_NAVEGADOR = ["youtube", "facebook", "instagram"];
+const REDES_NO_NAVEGADOR = ["facebook", "instagram"];
 function credenciais() {
   const c = credenciaisConfiguradas();
   for (const r of Object.keys(c)) if (!REDES_NO_NAVEGADOR.includes(r)) c[r] = false;

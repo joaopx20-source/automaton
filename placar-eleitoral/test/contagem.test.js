@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { aplicarComentarios, distribuirEmPedacos, montarResumo, linhasParaComentarios, chaveSegura } from "../lib/contagem.js";
 
-const base = () => ({ vistos: new Set(), autores: new Set(), votos: { lula: 0, flavio: 0, ignorados: 0 }, rede: "x", postagemId: "p1" });
+const base = () => ({ vistos: new Set(), autores: new Set(), votos: { lula: 0, flavio: 0, ignorados: 0 }, rede: "instagram", postagemId: "p1" });
 
 test("conta cada comentário uma vez, inclusive repetido no mesmo lote", () => {
   const e = base();
@@ -32,12 +32,12 @@ test("pedaços: completa o último e cria novos", () => {
 
 test("resumo soma e fecha 100%", () => {
   const r = montarResumo([
-    { rede: "x", votos: { lula: 2, flavio: 1, ignorados: 4 } },
-    { rede: "tiktok", votos: { lula: 0, flavio: 3, ignorados: 0 } },
+    { rede: "instagram", votos: { lula: 2, flavio: 1, ignorados: 4 } },
+    { rede: "facebook", votos: { lula: 0, flavio: 3, ignorados: 0 } },
   ], []);
   assert.deepEqual([r.totais.lula, r.totais.flavio, r.totais.total], [2, 4, 6]);
   assert.equal(r.totais.pctLula + r.totais.pctFlavio, 100);
-  assert.equal(r.porRede.tiktok.flavio, 3);
+  assert.equal(r.porRede.facebook.flavio, 3);
 });
 
 test("importação manual gera IDs estáveis", async () => {

@@ -1,4 +1,4 @@
-// Conectores das redes sociais. Cada um recebe a postagem salva e devolve
+// Conectores do Instagram e do Facebook (Graph API da Meta). Cada um recebe a postagem salva e devolve
 // { comentarios: [{ id, texto, autor }], estado } onde `estado` é guardado e
 // reenviado na próxima sincronização (cursor, since_id etc.).
 //
@@ -93,103 +93,12 @@ async function instagram(post) {
     : await lerDecrescente(post.estado, buscarPagina, { maxNovas: MAX_PAGINAS, maxAntigas: 20 });
   return { comentarios: res.comentarios, estado: { ...res.estado, mediaId, ...(ordem ? { ordem } : {}) } };
 }
-// ---------- X / Twitter (API v2: respostas via conversation_id) ----------
-async function x(post) {
-  const bearer = process.env.X_BEARER_TOKEN;
-  if (!bearer) throw semCredencial(["X_BEARER_TOKEN"]);
-  if (!post.idPostagem) throw new Error("Link do X sem ID de status.");
-  const headers = { authorization: `Bearer ${bearer}` };
-  // search/recent cobre os últimos 7 dias; para posts antigos é preciso o plano com search/all.
-  const endpoint = process.env.X_FULL_ARCHIVE ? "search/all" : "search/recent";
-
-  // Se a última leitura parou no meio (muitas respostas novas), retoma da página pendente
-  // mantendo o since_id antigo; só avança o since_id quando todas as páginas foram lidas.
-  const comentarios = [];
-  const sinceId = post.estado?.sinceId;
-  let maiorId = post.estado?.maiorPendente || sinceId;
-  let proxima = post.estado?.pendente || undefined;
-  for (let i = 0; i < MAX_PAGINAS; i++) {
-    const p = new URLSearchParams({
-      query: `conversation_id:${post.idPostagem}`,
-      max_results: "100",
-      "tweet.fields": "author_id,created_at",
-    });
-    if (sinceId) p.set("since_id", sinceId);
-    if (proxima) p.set("next_token", proxima);
-    const json = await getJson(`https://api.x.com/2/tweets/${endpoint}?${p}`, { headers });
-    for (const t of json.data || []) {
-      comentarios.push({ id: t.id, texto: t.text || "", autor: t.author_id || null });
-      if (!maiorId || BigInt(t.id) > BigInt(maiorId)) maiorId = t.id;
-    }
-    proxima = json.meta?.next_token;
-    if (!proxima) break;
-  }
-  if (proxima) return { comentarios, estado: { sinceId: sinceId || null, pendente: proxima, maiorPendente: maiorId || null } };
-  return { comentarios, estado: { sinceId: maiorId || null, pendente: null, maiorPendente: null } };
-}
-
-// ---------- TikTok (Research API: exige acesso aprovado pelo TikTok) ----------
-let tokenTikTok = null;
-async function tokenTiktok() {
-  if (tokenTikTok && tokenTikTok.expira > Date.now()) return tokenTikTok.valor;
-  const { TIKTOK_CLIENT_KEY: chave, TIKTOK_CLIENT_SECRET: segredo } = process.env;
-  if (!chave || !segredo) throw semCredencial(["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"]);
-  const json = await getJson("https://open.tiktokapis.com/v2/oauth/token/", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ client_key: chave, client_secret: segredo, grant_type: "client_credentials" }),
-  });
-  tokenTikTok = { valor: json.access_token, expira: Date.now() + (json.expires_in - 60) * 1000 };
-  return tokenTikTok.valor;
-}
-
-async function tiktok(post) {
-  if (!post.idPostagem) throw new Error("Link do TikTok sem ID do vídeo.");
-  const token = await tokenTiktok();
-  const comentarios = [];
-  let cursor = 0;
-  for (let i = 0; i < MAX_PAGINAS; i++) {
-    const json = await getJson("https://open.tiktokapis.com/v2/research/video/comment/list/?fields=id,text,create_time,parent_comment_id", {
-      method: "POST",
-      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify({ video_id: Number(post.idPostagem), max_count: 100, cursor }),
-    });
-    for (const c of json.data?.comments || []) comentarios.push({ id: String(c.id), texto: c.text || "", autor: null });
-    if (!json.data?.has_more) break;
-    cursor = json.data.cursor;
-  }
-  return { comentarios, estado: {} };
-}
-
-// ---------- YouTube (Data API v3) ----------
-// Lista do mais novo para o mais antigo: lê as novidades e depois continua descendo
-// pelos antigos de onde parou. Cada página gasta 1 unidade da cota diária (10 mil grátis).
-async function youtube(post) {
-  const chave = process.env.YOUTUBE_API_KEY;
-  if (!chave) throw semCredencial(["YOUTUBE_API_KEY"]);
-  if (!post.idPostagem) throw new Error("Link do YouTube sem ID do vídeo.");
-  return lerDecrescente(post.estado, async (cursor) => {
-    const p = new URLSearchParams({ part: "snippet", videoId: post.idPostagem, maxResults: "100", order: "time", textFormat: "plainText", key: chave });
-    if (cursor) p.set("pageToken", cursor);
-    const json = await getJson(`https://www.googleapis.com/youtube/v3/commentThreads?${p}`);
-    return {
-      itens: (json.items || []).map((item) => {
-        const s = item.snippet.topLevelComment.snippet;
-        return { id: item.id, texto: s.textOriginal || "", autor: s.authorChannelId?.value || s.authorDisplayName || null, quando: dataEmMs(s.publishedAt) };
-      }),
-      proximo: json.nextPageToken || null,
-    };
-  }, { maxNovas: 20, maxAntigas: Number(process.env.YOUTUBE_PAGINAS_POR_SYNC || 15) });
-}
-export const CONECTORES = { facebook, instagram, x, tiktok, youtube };
+export const CONECTORES = { facebook, instagram };
 
 export function credenciaisConfiguradas() {
   const e = process.env;
   return {
     facebook: !!e.FACEBOOK_PAGE_TOKEN,
     instagram: !!((e.INSTAGRAM_TOKEN || e.FACEBOOK_PAGE_TOKEN) && e.INSTAGRAM_BUSINESS_ID),
-    x: !!e.X_BEARER_TOKEN,
-    tiktok: !!(e.TIKTOK_CLIENT_KEY && e.TIKTOK_CLIENT_SECRET),
-    youtube: !!e.YOUTUBE_API_KEY,
   };
 }

@@ -13,8 +13,6 @@ export function iniciarDemo(store) {
     const base = [
       ["facebook", "https://www.facebook.com/exemplo/posts/1000000000000001", "Post no Facebook (demo)"],
       ["instagram", "https://www.instagram.com/p/DEMO0000001/", "Post no Instagram (demo)"],
-      ["x", "https://x.com/exemplo/status/1000000000000000001", "Post no X (demo)"],
-      ["tiktok", "https://www.tiktok.com/@exemplo/video/7000000000000000001", "Vídeo no TikTok (demo)"],
     ];
     for (const [rede, url, titulo] of base) store.adicionarPostagem({ rede, url, titulo, demo: true });
   }
