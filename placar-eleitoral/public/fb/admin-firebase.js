@@ -126,7 +126,10 @@ async function registrarComentarios(id, comentarios, estado) {
       for (const a of Object.keys(dados.autores || {})) autores.add(a);
     }
     const res = aplicarComentarios({ vistos, autores, votos: post.votos, rede: post.rede, postagemId: id }, comentarios);
-    if (!res.novasChaves.length && !post.erro) return { novos: 0, votos: post.votos }; // nada novo: não escreve
+    const novoEstado = estado ? { ...(post.estado || {}), ...estado } : post.estado || {};
+    const estadoMudou = JSON.stringify(novoEstado) !== JSON.stringify(post.estado || {});
+    // Nada novo (nem votos, nem ponto de leitura): não gasta escrita.
+    if (!res.novasChaves.length && !post.erro && !estadoMudou) return { novos: 0, votos: post.votos };
 
     const tamanhos = pedacos.map((d, i) => ({ id: nomePedaco(i), tamanho: Object.keys((d.exists() && d.data().ids) || {}).length }));
     const grupos = distribuirEmPedacos(tamanhos, res.novasChaves);
@@ -134,7 +137,7 @@ async function registrarComentarios(id, comentarios, estado) {
     const totalPedacos = Math.max(n, ...grupos.map((g) => Number(g.id) + 1));
 
     const mudanca = { votos: res.votos, erro: null, ultimaSync: new Date().toISOString() };
-    t.update(ref, { ...mudanca, pedacos: totalPedacos, ...(estado ? { estado: { ...(post.estado || {}), ...estado } } : {}) });
+    t.update(ref, { ...mudanca, pedacos: totalPedacos, estado: novoEstado });
     const postagens = r.postagens.map((p) => (p.id === id ? { ...p, ...mudanca } : p));
     t.set(RESUMO, montarResumo(postagens, [...res.feedNovo, ...r.feed].slice(0, TAMANHO_FEED)));
     return { novos: res.novos, votos: res.votos };
