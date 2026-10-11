@@ -519,21 +519,45 @@ def main():
             for p in pool.imap_unordered(render_one, todo):
                 print("ok:", p, flush=True)
     elif cmd == "plano":
-        inicio = dt.date.fromisoformat(sys.argv[2]) if len(sys.argv) > 2 else \
-            dt.date.today() + dt.timedelta(days=1)
-        os.makedirs(OUT, exist_ok=True)
-        with open(os.path.join(OUT, "plano_postagem.csv"), "w", newline="") as fh:
-            w = csv.writer(fh)
-            w.writerow(["n", "data", "hora", "arquivo", "formato", "redes", "legenda",
-                        "hashtags", "titulo_youtube"])
-            for k, v in enumerate(vs):
-                dia = inicio + dt.timedelta(days=k // POR_DIA)
-                texto, tags, yt = legenda(v)
-                w.writerow([v["id"], dia.isoformat(), HORARIOS[k % POR_DIA], v["arquivo"],
-                            v["formato"], "Instagram; TikTok; YouTube Shorts; Facebook",
-                            texto, tags, yt])
-        print("ok:", os.path.join(OUT, "plano_postagem.csv"))
+        plano(vs, dt.date.fromisoformat(sys.argv[2]) if len(sys.argv) > 2 else
+              dt.date.today() + dt.timedelta(days=1))
 
+
+RAW = ("https://raw.githubusercontent.com/joaopx20-source/automaton/"
+       "claude/kavix-promotional-videos-e6f1vd/promo/kavix/campanha/")
+FUSO = "America/Sao_Paulo"
+
+
+def plano(vs, inicio):
+    """Calendário: CSV (planilha) e JSON (para automação), 1 linha por post."""
+    os.makedirs(OUT, exist_ok=True)
+    posts = []
+    for k, v in enumerate(vs):
+        dia = inicio + dt.timedelta(days=k // POR_DIA)
+        hora = HORARIOS[k % POR_DIA]
+        texto, tags, yt = legenda(v)
+        posts.append({
+            "n": v["id"], "data": dia.isoformat(), "hora": hora,
+            "data_hora": f"{dia.isoformat()}T{hora}:00-03:00", "fuso": FUSO,
+            "arquivo": v["arquivo"], "url_download": RAW + v["arquivo"],
+            "formato": v["formato"], "assunto": v["assunto"],
+            "redes": ["Instagram", "Facebook", "TikTok", "YouTube Shorts"],
+            "legenda_instagram_facebook": f"{texto}\n\n{tags}",
+            "legenda_tiktok": f"{texto}\n\n{tags}",
+            "titulo_youtube": yt[:100],
+            "descricao_youtube": f"{texto}\n\n{tags} #shorts",
+            "hashtags": tags,
+        })
+    with open(os.path.join(OUT, "plano_postagem.json"), "w") as fh:
+        json.dump(posts, fh, ensure_ascii=False, indent=2)
+    campos = ["n", "data", "hora", "data_hora", "arquivo", "url_download", "formato",
+              "legenda_instagram_facebook", "legenda_tiktok", "titulo_youtube",
+              "descricao_youtube"]
+    with open(os.path.join(OUT, "plano_postagem.csv"), "w", newline="") as fh:
+        w = csv.DictWriter(fh, campos, extrasaction="ignore")
+        w.writeheader()
+        w.writerows(posts)
+    print("ok:", len(posts), "posts de", posts[0]["data"], "a", posts[-1]["data"])
 
 if __name__ == "__main__":
     main()
