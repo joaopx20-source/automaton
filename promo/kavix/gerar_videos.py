@@ -54,6 +54,9 @@ F_SEMI = _first("/usr/share/fonts/opentype/inter/InterDisplay-SemiBold.otf",
                 "/usr/share/fonts/opentype/inter/Inter-SemiBold.otf",
                 F_BOLD)
 F_EMOJI = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
+# fonte das etiquetas (nomes dos jogos, ranking): Unbounded, licença OFL
+F_DISPLAY = _first(os.path.join(HERE, "marca", "fontes", "Unbounded-ExtraBold.woff2"),
+                   F_BOLD)
 
 # Cores: marca (site) + destaque jovem
 WHITE = (255, 255, 255)
@@ -245,11 +248,13 @@ def sticker(text, size, bg=WHITE, fg=BLACK, path=F_BOLD):
 
 
 def draw_sticker(img, text, cx, cy, size, t, rot=-3.0, bg=WHITE, fg=BLACK,
-                 alpha=1.0, max_w=None):
+                 alpha=1.0, max_w=None, path=F_BOLD):
     """Etiqueta que entra com mola e fica levemente inclinada."""
     if t < 0 or alpha <= 0:
         return
-    lay = sticker(text, int(size), bg, fg)
+    if path == F_DISPLAY and F_DISPLAY != F_BOLD:
+        size *= 0.8  # a Unbounded é bem mais larga
+    lay = sticker(text, int(size), bg, fg, path)
     if max_w and lay.width > max_w:
         lay = scaled(lay, max_w / lay.width)
     s = lerp(0.3, 1.0, spring(t / 0.45))
@@ -533,6 +538,7 @@ class Clip:
         _open_clips.append(self)
 
     def get(self, t):
+        self.used = FRAME[0]
         if self.proc is None:
             self._open()
         want, n = int(t * FPS), self.w * self.h * 3
@@ -556,6 +562,17 @@ def close_clips():
         _open_clips.pop().close()
 
 
+FRAME = [0]  # quadro atual da renderização
+
+
+def close_idle_clips():
+    """Fecha as gravações cujas cenas já acabaram (economiza memória)."""
+    for c in list(_open_clips):
+        if getattr(c, "used", 0) < FRAME[0] - 1:
+            c.close()
+            _open_clips.remove(c)
+
+
 def blurred_bg(frame, W, H, dark=0.45):
     """Fundo desfocado (barato: reduz, desfoca e amplia)."""
     small = frame.resize((max(8, W // 14), max(8, H // 14)), Image.BILINEAR)
@@ -572,12 +589,26 @@ def blurred_bg(frame, W, H, dark=0.45):
 # ---------------------------------------------------------------- contexto
 
 class Ctx:
-    def __init__(self, W, H):
+    """Medidas do quadro. `platform` (reels, tiktok, youtube) define as áreas
+    seguras: no TikTok os botões cobrem a direita e o rodapé; no Reels e no
+    TikTok o topo tem o cabeçalho do app."""
+
+    def __init__(self, W, H, platform=None):
         self.W, self.H = W, H
         self.u = min(W, H) / 1080
         self.cx, self.cy = W / 2, H / 2
         self.vertical = H > W * 1.3
+        self.platform = platform or ("reels" if self.vertical else "youtube")
         self.max_w = W * (0.86 if self.vertical else 0.8)
+        self.text_cx = self.cx
+        self.safe_bottom = 0.92
+        self.top_off = 0
+        if self.platform == "reels":
+            self.safe_bottom, self.top_off = 0.8, 100 * self.u
+        elif self.platform == "tiktok":
+            self.safe_bottom, self.top_off = 0.74, 130 * self.u
+            self.max_w = W * 0.78
+            self.text_cx = self.cx - W * 0.04
         # jogo em pé (9:16): tela cheia no vertical, painel central nos outros
         self.panel_w = W if self.vertical else int(H * 9 / 16)
         self.panel_h = H
@@ -650,7 +681,7 @@ def phone_card(frame, h, u):
 
 
 def progress_bar(img, c, t, dur):
-    y = (58 if c.vertical else 26) * c.u
+    y = (58 if c.vertical else 26) * c.u + c.top_off
     w, h = c.W * 0.92, max(4, int(6 * c.u))
     x0 = (c.W - w) / 2
     d = ImageDraw.Draw(img, "RGBA")
@@ -689,7 +720,7 @@ def handle_layer(u):
     inner.putalpha(im2)
     ring.alpha_composite(inner, (b, b))
     name = text_layer(HANDLE, int(36 * u), path=F_BOLD, shadow_a=200)
-    tag = text_layer("Patrocinado", int(27 * u), fill=(230, 230, 240),
+    tag = text_layer("jogos grátis no celular e PC", int(27 * u), fill=(230, 230, 240),
                      path=F_SEMI, shadow_a=200)
     W = ring.width + int(14 * u) + max(name.width, tag.width)
     out = Image.new("RGBA", (W, ring.height + int(8 * u)), (0, 0, 0, 0))
@@ -701,7 +732,7 @@ def handle_layer(u):
 
 def handle(img, c, alpha=1.0):
     composite(img, set_alpha(handle_layer(c.u), alpha), 34 * c.u,
-              (90 if c.vertical else 52) * c.u)
+              (90 if c.vertical else 52) * c.u + c.top_off)
 
 
 @functools.lru_cache(maxsize=4)
@@ -726,13 +757,15 @@ def draw_texts(img, c, t, items):
             continue
         lt, a = t - t0, 1 - prog(t, t1 - 0.12, t1)
         y = c.Y(opt.get("y", 0.6 if c.vertical else 0.74))
+        y = min(y, c.Y(c.safe_bottom))
+        y = max(y, c.Y(0.12) + c.top_off)
         if kind == "cap":
-            caption(img, text, c.cx, y, opt.get("size", 1.0) * c.cap_size, lt,
+            caption(img, text, c.text_cx, y, opt.get("size", 1.0) * c.cap_size, lt,
                     c.max_w, opt.get("hl", ()), alpha=a)
         else:
-            draw_sticker(img, text, c.cx, y, opt.get("size", 54) * c.u, lt,
+            draw_sticker(img, text, c.text_cx, y, opt.get("size", 54) * c.u, lt,
                          opt.get("rot", -3), opt.get("bg", WHITE),
-                         opt.get("fg", BLACK), a, max_w=c.W * 0.9)
+                         opt.get("fg", BLACK), a, max_w=c.max_w, path=F_DISPLAY)
 
 
 def sc_game(src, texts=(), name=None, zoom_in=True):
@@ -746,8 +779,9 @@ def sc_game(src, texts=(), name=None, zoom_in=True):
         img.alpha_composite(top_shade(c.W, c.H))
         handle(img, c)
         if name:
-            draw_sticker(img, name, c.cx, c.Y(0.2 if c.vertical else 0.24),
-                         62 * c.u, t - 0.05, -3)
+            draw_sticker(img, name, c.text_cx,
+                         c.Y(0.2 if c.vertical else 0.24) + c.top_off * 0.6,
+                         62 * c.u, t - 0.05, -3, path=F_DISPLAY)
         draw_texts(img, c, t, texts)
     return f
 
@@ -1240,15 +1274,15 @@ def spec_top5(W, H):
     """Contagem regressiva do 5 ao 1 com reações e chamada pra comentar."""
     lib = library()
     sc = [(2.2, sc_game(at(game(4)["celular"], 0.5), texts=[
-        (0.0, 2.2, "label", "TOP 5", {"y": 0.27, "size": 80, "rot": -4, "bg": LIME}),
+        (0.0, 2.2, "label", "TOP 5", {"y": 0.28, "size": 70, "rot": -4, "bg": LIME}),
         (0.2, 2.2, "cap", "jogos mais viciantes do KAVIX 🔥", {"y": 0.4, "hl": (2,)})]))]
     for k, (nome, fala) in enumerate(TOP5):
         g = game(k * 5 + 1, nome)
         rank = 5 - k
         sc.append((2.8, sc_game(at(g["celular"], 0.4), texts=[
-            (0.0, 2.8, "label", f"#{rank}", {"y": 0.19, "size": 110, "rot": -5,
+            (0.0, 2.8, "label", f"#{rank}", {"y": 0.2, "size": 66, "rot": -5,
                                              "bg": LIME if rank > 1 else (255, 206, 64)}),
-            (0.1, 2.8, "label", g["nome"], {"y": 0.29, "size": 60, "rot": 3}),
+            (0.1, 2.8, "label", g["nome"], {"y": 0.27, "size": 62, "rot": 3}),
             (0.6, 2.8, "cap", fala, {"y": 0.62, "hl": (len(fala.split()) - 2,)})])))
     sc.append((2.0, sc_collage(at(game(9, "Cobrinha")["celular"], 0.2),
                                at(game(2, "Quebra Blocos")["pc"], 0.5), texts=[
@@ -1258,10 +1292,12 @@ def spec_top5(W, H):
                  extra=[("pop", 2.2 + 2.8 * k + 0.02) for k in range(5)])
 
 
-VIDEOS = {
-    "top5": (spec_top5, 1080, 1920),
-    "todos": (spec_todos, 1080, 1920),
-    "skins": (spec_skins, 1080, 1920),
+VIDEOS = {}
+for _nome, _fn in (("todos", spec_todos), ("top5", spec_top5), ("skins", spec_skins)):
+    VIDEOS[f"{_nome}_reels"] = (_fn, 1080, 1920, "reels")
+    VIDEOS[f"{_nome}_tiktok"] = (_fn, 1080, 1920, "tiktok")
+    VIDEOS[f"{_nome}_youtube"] = (_fn, 1920, 1080, "youtube")
+VIDEOS.update({
     "arcade": (spec_arcade, 1080, 1920),
     "arcade_feed": (spec_arcade, 1080, 1350),
     "arcade_youtube": (spec_arcade, 1920, 1080),
@@ -1269,7 +1305,7 @@ VIDEOS = {
     "plataformas_youtube": (spec_plataformas, 1920, 1080),
     "desafio": (spec_desafio, 1080, 1920),
     "itens": (spec_itens, 1080, 1920),
-}
+})
 
 
 def _slug(s):
@@ -1308,9 +1344,9 @@ def render_frame(s, c, t):
 
 
 def render(name):
-    spec_fn, W, H = VIDEOS[name]
+    spec_fn, W, H, *plat = VIDEOS[name]
     s = spec_fn(W, H)
-    c = Ctx(W, H)
+    c = Ctx(W, H, plat[0] if plat else None)
     os.makedirs(OUT_DIR, exist_ok=True)
     wav = os.path.join(OUT_DIR, f".{name}.wav")
     out = os.path.join(OUT_DIR, f"kavix_{name}_{W}x{H}.mp4")
@@ -1324,7 +1360,9 @@ def render(name):
            "-movflags", "+faststart", out]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for fi in range(int(s["dur"] * FPS)):
+        FRAME[0] = fi
         proc.stdin.write(render_frame(s, c, fi / FPS).tobytes())
+        close_idle_clips()
     proc.stdin.close()
     proc.wait()
     close_clips()
