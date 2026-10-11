@@ -1,0 +1,29 @@
+Preciso que você agende a campanha 2 do KAVIX ARCADE: 100 reels nas minhas redes
+(Instagram @kavixarcade, Facebook, TikTok e YouTube Shorts). Eu já estou logado em todas
+no navegador. NÃO use o Buffer: agende nas ferramentas oficiais de cada rede.
+
+ARQUIVOS (repositório público no GitHub):
+- Planilha: https://github.com/joaopx20-source/automaton/raw/claude/kavix-promotional-videos-e6f1vd/promo/kavix/campanha2/calendario_campanha2.xlsx
+- Plano em JSON (mesmo conteúdo): https://raw.githubusercontent.com/joaopx20-source/automaton/claude/kavix-promotional-videos-e6f1vd/promo/kavix/campanha2/plano_postagem.json
+- Instruções completas: https://github.com/joaopx20-source/automaton/blob/claude/kavix-promotional-videos-e6f1vd/promo/kavix/campanha2/INSTRUCOES_CODEX.md
+- Vídeos: coluna "url_download" da planilha (um .mp4 por post), ou clone tudo:
+  git clone --depth 1 --branch claude/kavix-promotional-videos-e6f1vd https://github.com/joaopx20-source/automaton.git
+
+DATA DE INÍCIO: [COLOQUE AQUI, ex.: 01/12/2026]
+(Na planilha, digite essa data na célula amarela B3 da aba "Inicio". As colunas "data" e
+"data_hora" da aba "Calendario" se calculam sozinhas. Dia N = início + N−1 dias.)
+
+REGRAS:
+1. 4 posts por dia às 09:00, 12:30, 17:00 e 20:30, HORÁRIO DE BRASÍLIA (UTC−3).
+2. O mesmo vídeo vai para as 4 redes no mesmo horário.
+3. Instagram + Facebook: Meta Business Suite → Planejador → Criar Reel (marque os dois),
+   legenda = coluna "legenda_instagram_facebook".
+4. TikTok: TikTok Studio → Enviar → Agendar, legenda = "legenda_tiktok".
+   O TikTok só agenda até 10 dias à frente: faça em lotes e volte para o resto depois.
+5. YouTube: YouTube Studio → Enviar vídeo → título = "titulo_youtube",
+   descrição = "descricao_youtube", "não é conteúdo para crianças", Programar = data_hora.
+   Se aparecer limite diário de envios, pare e continue no dia seguinte.
+6. Use exatamente o vídeo e o texto de cada linha; não mude legendas, hashtags nem a ordem.
+7. Antes de agendar, confira se o post já não está agendado (não duplicar).
+8. Marque o andamento na aba "Controle" da planilha (pendente / agendado / publicado / erro)
+   e me mande um resumo no final: quantos agendados por rede e quais deram erro.
