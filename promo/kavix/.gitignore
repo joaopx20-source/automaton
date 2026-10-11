@@ -2,3 +2,4 @@ __pycache__/
 # gravações brutas do gravar_auto.cjs (grandes); os clipes cortados ficam em gameplay/auto
 gameplay/celular.*
 gameplay/pc.*
+*.wav

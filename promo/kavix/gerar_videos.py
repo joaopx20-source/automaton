@@ -64,6 +64,7 @@ BLACK = (10, 10, 14)
 VIOLET = (124, 92, 255)   # botão do site: degradê roxo -> ciano
 SKY = (56, 210, 255)
 LIME = (198, 255, 61)     # destaque das legendas
+ACCENT = [LIME]           # cor de destaque do vídeo atual (muda por vídeo)
 INK = (16, 14, 40)
 
 
@@ -271,7 +272,7 @@ def caption(img, text, cx, cy, size, t, max_w, highlight=(), per_word=0.07,
         return
     words = text.split()
     stroke = max(3, int(size * 0.11))
-    lays = [text_layer(w, int(size), fill=LIME if i in highlight else WHITE,
+    lays = [text_layer(w, int(size), fill=ACCENT[0] if i in highlight else WHITE,
                        stroke=stroke, shadow_a=170)
             for i, w in enumerate(words)]
     pad = int(int(size) * 0.25)  # margem da sombra em volta de cada palavra
@@ -1345,11 +1346,17 @@ def render_frame(s, c, t):
 
 def render(name):
     spec_fn, W, H, *plat = VIDEOS[name]
-    s = spec_fn(W, H)
-    c = Ctx(W, H, plat[0] if plat else None)
-    os.makedirs(OUT_DIR, exist_ok=True)
-    wav = os.path.join(OUT_DIR, f".{name}.wav")
-    out = os.path.join(OUT_DIR, f"kavix_{name}_{W}x{H}.mp4")
+    return render_spec(spec_fn(W, H), W, H, plat[0] if plat else None,
+                       os.path.join(OUT_DIR, f"kavix_{name}_{W}x{H}.mp4"))
+
+
+def render_spec(s, W, H, platform, out):
+    """Renderiza um roteiro (dict do build) em `out`."""
+    c = Ctx(W, H, platform)
+    ACCENT[0] = s.get("accent", LIME)
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    wav = out + ".wav"
+    name = os.path.basename(out)
     write_wav(wav, music(s["dur"], s["bpm"], s["prog"], s["events"], s["seed"],
                          s["gap"]))
     cmd = ["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo",
