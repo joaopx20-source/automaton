@@ -13,6 +13,7 @@ Instruções para quem for agendar os posts (Codex ou uma pessoa).
 Campos de cada post (`plano_postagem.json`):
 
 - `n`: número do post (1 a 100); também é o prefixo do nome do vídeo.
+- `dia_campanha` (1 a 25), `hora`; `data` e `data_hora` ficam vazios até definir o início.
 - `data`, `hora`, `data_hora`: quando publicar, **horário de Brasília**
   (`America/Sao_Paulo`, UTC−3). Ex.: `2026-10-12T09:00:00-03:00`.
 - `arquivo`: caminho do vídeo nesta pasta.
@@ -20,13 +21,22 @@ Campos de cada post (`plano_postagem.json`):
 - `legenda_instagram_facebook`, `legenda_tiktok`: texto completo do post, já com hashtags.
 - `titulo_youtube` (até 100 caracteres) e `descricao_youtube`.
 
-## Calendário
+## Calendário (separado da campanha 1, para usar depois)
 
-- **4 posts por dia**, às **09:00, 12:30, 17:00 e 20:30** (Brasília).
-- De **06/11/2026 (post 1)** a **30/11/2026 (post 100)**, logo depois da campanha 1 (que vai até 05/11).
+- **4 posts por dia**, nos mesmos horários da campanha 1: **09:00, 12:30, 17:00 e
+  20:30** (Brasília).
+- O calendário está organizado por **dia da campanha** (`dia_campanha` = 1 a 25),
+  **sem datas fixas**. Antes de agendar, escolha o dia de início e preencha as datas:
+
+  ```bash
+  python3 promo/kavix/campanha2.py plano 2026-12-01   # troque pela data de início
+  ```
+
+  Isso preenche `data` e `data_hora` em `plano_postagem.json`/`.csv`. Sem rodar o
+  comando: data do post = data de início + (`dia_campanha` − 1) dias, no `hora` indicado.
 - O **mesmo vídeo** vai para as **4 redes no mesmo horário**: Instagram (Reels),
   Facebook (Reels), TikTok e YouTube (Shorts).
-- A ordem já intercala os 10 formatos; não reordene.
+- A ordem já intercala os 7 formatos; não reordene.
 
 ## Como baixar os vídeos
 

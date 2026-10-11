@@ -9,7 +9,8 @@ endereço do site aparece durante o vídeo, não só no final.
 Uso:
     python3 promo/kavix/campanha2.py lista
     python3 promo/kavix/campanha2.py render [n ...]
-    python3 promo/kavix/campanha2.py plano 2026-11-06   # continua após a campanha 1
+    python3 promo/kavix/campanha2.py plano              # calendário sem datas (Dia 1..25)
+    python3 promo/kavix/campanha2.py plano 2026-12-01   # preenche as datas a partir do dia
 
 Saída: campanha2/videos/NNN_<formato>_<assunto>.mp4, plano_postagem.{csv,json}
 """
@@ -471,16 +472,21 @@ RAW = ("https://raw.githubusercontent.com/joaopx20-source/automaton/"
        "claude/kavix-promotional-videos-e6f1vd/promo/kavix/campanha2/")
 
 
-def plano(vs, inicio):
+def plano(vs, inicio=None):
+    """Calendário por 'dia da campanha' (1 a 25). Sem `inicio`, fica sem datas,
+    para usar depois; com `inicio`, preenche data e data_hora."""
     os.makedirs(OUT, exist_ok=True)
     posts = []
     for k, v in enumerate(vs):
-        dia = inicio + dt.timedelta(days=k // c1.POR_DIA)
+        n_dia = k // c1.POR_DIA + 1
+        dia = inicio + dt.timedelta(days=n_dia - 1) if inicio else None
         hora = c1.HORARIOS[k % c1.POR_DIA]
         texto, tags, yt = legenda(v)
         posts.append({
-            "n": v["id"], "data": dia.isoformat(), "hora": hora,
-            "data_hora": f"{dia.isoformat()}T{hora}:00-03:00", "fuso": c1.FUSO,
+            "n": v["id"], "dia_campanha": n_dia,
+            "data": dia.isoformat() if dia else "", "hora": hora,
+            "data_hora": f"{dia.isoformat()}T{hora}:00-03:00" if dia else "",
+            "fuso": c1.FUSO,
             "arquivo": v["arquivo"], "url_download": RAW + v["arquivo"],
             "formato": v["formato"], "assunto": v["assunto"],
             "redes": ["Instagram", "Facebook", "TikTok", "YouTube Shorts"],
@@ -492,14 +498,16 @@ def plano(vs, inicio):
         })
     with open(os.path.join(OUT, "plano_postagem.json"), "w") as fh:
         json.dump(posts, fh, ensure_ascii=False, indent=2)
-    campos = ["n", "data", "hora", "data_hora", "arquivo", "url_download", "formato",
+    campos = ["n", "dia_campanha", "data", "hora", "data_hora", "arquivo", "url_download",
+              "formato",
               "legenda_instagram_facebook", "legenda_tiktok", "titulo_youtube",
               "descricao_youtube"]
     with open(os.path.join(OUT, "plano_postagem.csv"), "w", newline="") as fh:
         w = csv.DictWriter(fh, campos, extrasaction="ignore")
         w.writeheader()
         w.writerows(posts)
-    print("ok:", len(posts), "posts de", posts[0]["data"], "a", posts[-1]["data"])
+    print("ok:", len(posts), "posts em", posts[-1]["dia_campanha"], "dias",
+          f"(de {posts[0]['data']} a {posts[-1]['data']})" if inicio else "(sem datas)")
 
 
 def main():
@@ -515,8 +523,7 @@ def main():
             for p in pool.imap_unordered(render_one, [v["id"] for v in vs if v["id"] in sel]):
                 print("ok:", p, flush=True)
     elif cmd == "plano":
-        plano(vs, dt.date.fromisoformat(sys.argv[2]) if len(sys.argv) > 2 else
-              dt.date(2026, 11, 6))
+        plano(vs, dt.date.fromisoformat(sys.argv[2]) if len(sys.argv) > 2 else None)
 
 
 if __name__ == "__main__":

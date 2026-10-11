@@ -537,7 +537,7 @@ def plano(vs, inicio):
         hora = HORARIOS[k % POR_DIA]
         texto, tags, yt = legenda(v)
         posts.append({
-            "n": v["id"], "data": dia.isoformat(), "hora": hora,
+            "n": v["id"], "dia_campanha": k // POR_DIA + 1, "data": dia.isoformat(), "hora": hora,
             "data_hora": f"{dia.isoformat()}T{hora}:00-03:00", "fuso": FUSO,
             "arquivo": v["arquivo"], "url_download": RAW + v["arquivo"],
             "formato": v["formato"], "assunto": v["assunto"],
@@ -550,7 +550,8 @@ def plano(vs, inicio):
         })
     with open(os.path.join(OUT, "plano_postagem.json"), "w") as fh:
         json.dump(posts, fh, ensure_ascii=False, indent=2)
-    campos = ["n", "data", "hora", "data_hora", "arquivo", "url_download", "formato",
+    campos = ["n", "dia_campanha", "data", "hora", "data_hora", "arquivo", "url_download",
+              "formato",
               "legenda_instagram_facebook", "legenda_tiktok", "titulo_youtube",
               "descricao_youtube"]
     with open(os.path.join(OUT, "plano_postagem.csv"), "w", newline="") as fh:
