@@ -383,9 +383,10 @@ def library():
     """Jogos gravados: [{"nome", "celular": (arquivo, início), "pc": (...)}].
 
     Junta as duas fontes:
-      * modo automático (gravar_auto.cjs): gameplay/celular.* + pc.*, um
-        trecho por jogo — usado para o CELULAR (9:16 em resolução cheia,
-        com as skins do kit sorteado);
+      * modo automático (gravar_auto.cjs): gameplay/auto.json com um clipe
+        por jogo (cortar_auto.py) ou, sem ele, gameplay/celular.* + pc.* —
+        usado para o CELULAR (9:16 em resolução cheia, com as skins do kit
+        sorteado);
       * gravações manuais (preparar_gravacoes.py, gameplay/jogos.json) —
         usadas para o PC quando existem, porque mostram o site de verdade
         no navegador, com a barra de endereço."""
@@ -403,7 +404,19 @@ def library():
                     manual[j["nome"].lower()] = dict(nome=j["nome"], celular=(cel, 0.0),
                                                      pc=(pc, 0.0))
     _library = []
-    if find_clip("celular") and find_clip("pc"):
+    af = os.path.join(GAMEPLAY_DIR, "auto.json")  # clipes do cortar_auto.py
+    if os.path.exists(af):
+        with open(af) as fh:
+            for j in json.load(fh):
+                cel = os.path.join(GAMEPLAY_DIR, j["celular"])
+                pc = os.path.join(GAMEPLAY_DIR, j["pc"])
+                if not os.path.exists(cel):
+                    continue
+                m = manual.pop(j["nome"].lower(), None)
+                _library.append(dict(nome=j["nome"], celular=(cel, 0.0),
+                                     pc=m["pc"] if m else (pc if os.path.exists(pc)
+                                                           else cel, 0.0)))
+    elif find_clip("celular") and find_clip("pc"):
         sc, sp = segments("celular"), segments("pc")
 
         def st(segs, i):
@@ -591,10 +604,30 @@ def game_panel(img, c, clip, t, zoom=1.0):
     put(img, im, c.cx, c.cy)
 
 
-def window_card(frame, w, u):
-    """Gravação do PC como janela de navegador com cantos arredondados."""
+def window_card(frame, w, u, bar=False):
+    """Gravação do PC como janela de navegador com cantos arredondados.
+    `bar` desenha abas/endereço (para gravações sem a barra do navegador)."""
     h = int(w * 9 / 16)
     im = frame.convert("RGBA").resize((w, h), Image.BILINEAR)
+    if bar:
+        bh = max(18, int(h * 0.075))
+        top = Image.new("RGBA", (w, bh), (32, 30, 44, 255))
+        d = ImageDraw.Draw(top)
+        for k, col in enumerate([(255, 95, 87), (254, 188, 46), (40, 200, 64)]):
+            r = bh * 0.14
+            x = bh * 0.45 + k * bh * 0.42
+            d.ellipse((x - r, bh / 2 - r, x + r, bh / 2 + r), fill=col)
+        pw, ph = int(w * 0.42), int(bh * 0.62)
+        px = (w - pw) // 2
+        d.rounded_rectangle((px, (bh - ph) // 2, px + pw, (bh + ph) // 2), ph // 2,
+                            fill=(52, 50, 66, 255))
+        lbl = text_layer("🔒 " + URL, int(ph * 0.62), fill=(225, 225, 235), path=F_SEMI)
+        top.alpha_composite(lbl, (px + (pw - lbl.width) // 2, (bh - lbl.height) // 2))
+        im = im.resize((w, h - bh), Image.BILINEAR)
+        full = Image.new("RGBA", (w, h))
+        full.alpha_composite(top, (0, 0))
+        full.alpha_composite(im, (0, bh))
+        im = full
     im.putalpha(rounded((w, h), int(24 * u), WHITE).getchannel("A"))
     out = shadow((w, h), int(24 * u), 26 * u, 170)
     pad = (out.width - w) // 2
@@ -729,7 +762,8 @@ def sc_pc(src_pc, texts=()):
         fr = st["pc"].get(t)
         img.alpha_composite(blurred_bg(fr, c.W, c.H, 0.5))
         k = spring(t / 0.5)
-        card = window_card(fr, int(c.W * (0.94 if c.vertical else 0.72)), c.u)
+        card = window_card(fr, int(c.W * (0.94 if c.vertical else 0.72)), c.u,
+                           bar=not src_pc[0].endswith("_pc.mp4"))
         card = scaled(card, lerp(0.7, 1.0, k) * (1 + 0.04 * t / dur))
         card = card.rotate(lerp(-8, -2, k), expand=True, resample=Image.BICUBIC)
         put(img, set_alpha(card, clamp01(t / 0.1)), c.cx, c.Y(0.48 if c.vertical else 0.5))
@@ -756,7 +790,8 @@ def sc_collage(src_cel, src_pc, texts=()):
             ww, ph = int(c.W * 0.5), int(c.H * 0.7)
             pcpos, celpos = (c.cx + c.W * 0.1, c.Y(0.44)), (c.cx - c.W * 0.2, c.Y(0.52))
         k1, k2 = spring(t / 0.5), spring((t - 0.15) / 0.5)
-        pc = window_card(fp, ww, c.u).rotate(lerp(10, 3, k1), expand=True,
+        pc = window_card(fp, ww, c.u, bar=not src_pc[0].endswith("_pc.mp4")).rotate(
+            lerp(10, 3, k1), expand=True,
                                               resample=Image.BICUBIC)
         put(img, set_alpha(scaled(pc, lerp(0.6, 1, k1)), clamp01(t / 0.1)), *pcpos)
         if t > 0.15:
