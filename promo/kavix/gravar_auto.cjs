@@ -12,12 +12,14 @@
 //
 // Uso:
 //   NODE_PATH="$(npm root -g)" node promo/kavix/gravar_auto.cjs [jogos] [segundos_por_jogo]
-//   (padrão: 24 jogos, 25 segundos cada — grave bastante jogabilidade)
+//   (padrão: todos os jogos da página, 25 segundos cada)
 //
 // Variáveis opcionais:
 //   KAVIX_AUTO_URL  página do bot (padrão: https://kavix-arcade.web.app/auto.html)
 //   KAVIX_ONLY=pc   grava só um aparelho (celular ou pc)
 //   KAVIX_KEY=n     tecla que pula para o próximo jogo
+//   KAVIX_VISUAL    kit (padrão: kit sorteado a cada jogo), roupa ou meu
+//   KAVIX_FAIXA=1   mantém a faixa de cima com o nome do jogo
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -25,7 +27,7 @@ const { spawn, spawnSync } = require('child_process');
 const { chromium, devices } = require('playwright');
 
 const URL = process.env.KAVIX_AUTO_URL || 'https://kavix-arcade.web.app/auto.html';
-const MODES = Number(process.argv[2] || 24);
+const MODES_ARG = Number(process.argv[2] || 0);  // 0 = todos os jogos da página
 const PER_MODE = Number(process.argv[3] || 25);
 const KEY = process.env.KAVIX_KEY || 'n';
 const OUT = path.join(__dirname, 'gameplay');
@@ -34,10 +36,35 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const has = (bin) => spawnSync('which', [bin]).status === 0;
 const HD = process.platform === 'linux' && has('Xvfb') && has('ffmpeg');
 
-// Tenta descobrir o nome do jogo que está na tela: título da aba, depois o
-// maior texto curto no topo da página.
+// Abre a vitrine: clica em "Começar" e esconde a faixa de cima (tecla H),
+// para a imagem sair limpa. Devolve quantos jogos a página tem ("1 de N").
+async function startShowcase(page) {
+  // como a bolinha se veste: "kit" = kit sorteado a cada jogo (padrão),
+  // "roupa" = uma roupa nova a cada jogo, "meu" = visual do Inventário
+  const visual = process.env.KAVIX_VISUAL || 'kit';
+  const modo = page.locator(`#modosVitrine .modo[data-modo="${visual}"]`);
+  if (await modo.count()) {
+    await modo.click();
+    console.log(`  visual: ${visual}`);
+  }
+  const vai = page.locator('#vai');
+  if (await vai.count()) await vai.click();
+  else await page.mouse.click(10, 10).catch(() => {});
+  await sleep(1200);
+  if (process.env.KAVIX_FAIXA !== '1') await page.keyboard.press('h');
+  const total = await page.evaluate(() => {
+    const m = /de\s+(\d+)/.exec((document.querySelector('#conta') || {}).textContent || '');
+    return m ? Number(m[1]) : 0;
+  }).catch(() => 0);
+  return total;
+}
+
+// Nome do jogo que está na tela: #nome da vitrine; senão, o maior texto
+// curto no topo da página.
 async function gameName(page) {
   return page.evaluate(() => {
+    const el = document.querySelector('#nome');
+    if (el && el.textContent.trim()) return el.textContent.trim();
     const vh = window.innerHeight;
     let best = null;
     for (const el of document.querySelectorAll('h1,h2,h3,header *,[class*=title],[class*=nome],[class*=name]')) {
@@ -51,7 +78,9 @@ async function gameName(page) {
   }).catch(() => '');
 }
 
-async function playModes(page, name, now) {
+async function playModes(page, name, now, total) {
+  const MODES = MODES_ARG || total || 24;
+  console.log(`[${name}] ${total || '?'} jogos na página; gravando ${MODES}, ${PER_MODE}s cada`);
   const segments = [];
   for (let i = 0; i < MODES; i++) {
     if (i > 0) {
@@ -89,7 +118,7 @@ async function recordHD(name, ctxOpts, display) {
   console.log(`[${name}] abrindo ${URL}`);
   await page.goto(URL, { waitUntil: 'load', timeout: 90000 });
   await sleep(2500);
-  await page.mouse.click(vp.width / 2, vp.height / 2).catch(() => {});
+  const total = await startShowcase(page);
 
   fs.mkdirSync(OUT, { recursive: true });
   const file = path.join(OUT, `${name}.mp4`);
@@ -102,7 +131,7 @@ async function recordHD(name, ctxOpts, display) {
   const now = () => (Date.now() - t0) / 1000;
   await sleep(500);
 
-  const segments = await playModes(page, name, now);
+  const segments = await playModes(page, name, now, total);
   const realDuration = now();
   ff.stdin.write('q');
   await new Promise((r) => ff.on('close', r));
@@ -124,8 +153,8 @@ async function recordPlaywright(name, ctxOpts) {
   console.log(`[${name}] abrindo ${URL}`);
   await page.goto(URL, { waitUntil: 'load', timeout: 90000 });
   await sleep(2500);
-  await page.mouse.click(vp.width / 2, vp.height / 2).catch(() => {});
-  const segments = await playModes(page, name, now);
+  const total = await startShowcase(page);
+  const segments = await playModes(page, name, now, total);
   // o .webm do Playwright sai um pouco mais longo que o tempo real; guardamos
   // a duração real para o gerar_videos.py corrigir os cortes
   const realDuration = now();
@@ -151,10 +180,11 @@ async function record(name, ctxOpts, display) {
   console.log(HD ? 'modo HD: Xvfb + ffmpeg' : 'modo simples: gravação do Playwright');
   const only = process.env.KAVIX_ONLY;
   if (!only || only === 'celular') {
-    // tela de celular em pé (9:19,5), com toque e user agent de iPhone
+    // tela em pé 9:16 em resolução cheia (o formato dos Reels), com toque e
+    // user agent de iPhone
     const { defaultBrowserType, ...iphone } = devices['iPhone 13'];
-    await record('celular', { ...iphone, viewport: { width: 540, height: 1170 },
-                              screen: { width: 540, height: 1170 }, deviceScaleFactor: 1 }, ':91');
+    await record('celular', { ...iphone, viewport: { width: 1080, height: 1920 },
+                              screen: { width: 1080, height: 1920 }, deviceScaleFactor: 1 }, ':91');
   }
   if (!only || only === 'pc') {
     await record('pc', { viewport: { width: 1920, height: 1080 } }, ':92');

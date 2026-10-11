@@ -34,7 +34,8 @@ GAMEPLAY_DIR = os.environ.get("KAVIX_GAMEPLAY_DIR") or os.path.join(HERE, "gamep
 VIDEO_EXT = (".mp4", ".webm", ".mov", ".mkv", ".m4v", ".avi")
 
 URL = "kavixbrasil.com.br"
-HANDLE = "@kavixbrasil"
+HANDLE = "@kavixarcade"  # perfil no Instagram
+LOGO = os.path.join(HERE, "marca", "logo.png")  # foto do perfil
 TOTAL_JOGOS = "+20"  # quantidade de jogos do site (não só os gravados)
 SPEED = float(os.environ.get("KAVIX_SPEED", "2"))  # jogabilidade em 2x
 
@@ -381,13 +382,17 @@ _library = None
 def library():
     """Jogos gravados: [{"nome", "celular": (arquivo, início), "pc": (...)}].
 
-    Junta gameplay/jogos.json (preparar_gravacoes.py) com os jogos do modo
-    automático em gameplay/celular.* + pc.* (gravar_auto.cjs) que ainda não
-    tenham gravação manual."""
+    Junta as duas fontes:
+      * modo automático (gravar_auto.cjs): gameplay/celular.* + pc.*, um
+        trecho por jogo — usado para o CELULAR (9:16 em resolução cheia,
+        com as skins do kit sorteado);
+      * gravações manuais (preparar_gravacoes.py, gameplay/jogos.json) —
+        usadas para o PC quando existem, porque mostram o site de verdade
+        no navegador, com a barra de endereço."""
     global _library
     if _library is not None:
         return _library
-    _library = []
+    manual = {}
     mf = os.path.join(GAMEPLAY_DIR, "jogos.json")
     if os.path.exists(mf):
         with open(mf) as fh:
@@ -395,8 +400,9 @@ def library():
                 cel = os.path.join(GAMEPLAY_DIR, j["celular"])
                 pc = os.path.join(GAMEPLAY_DIR, j["pc"])
                 if os.path.exists(cel) and os.path.exists(pc):
-                    _library.append(dict(nome=j["nome"], celular=(cel, 0.0),
-                                         pc=(pc, 0.0)))
+                    manual[j["nome"].lower()] = dict(nome=j["nome"], celular=(cel, 0.0),
+                                                     pc=(pc, 0.0))
+    _library = []
     if find_clip("celular") and find_clip("pc"):
         sc, sp = segments("celular"), segments("pc")
 
@@ -407,12 +413,66 @@ def library():
             return a + min(1.5, (b - a) * 0.15)  # pula a transição
         for i in range(max(len(sc), len(sp), 1)):
             nome = (sc[i][2] if i < len(sc) else "") or f"Jogo {i + 1}"
-            if any(g["nome"].lower() == nome.lower() for g in _library):
-                continue  # já existe uma gravação manual desse jogo
+            m = manual.pop(nome.lower(), None)
             _library.append(dict(nome=nome,
                                  celular=(find_clip("celular"), st(sc, i)),
-                                 pc=(find_clip("pc"), st(sp, i))))
+                                 pc=m["pc"] if m else (find_clip("pc"), st(sp, i))))
+    _library += list(manual.values())
     return _library
+
+
+def total_jogos():
+    """Quantos jogos anunciar: os gravados, se forem muitos; senão '+20'."""
+    n = len(library())
+    return str(n) if n >= 20 else TOTAL_JOGOS
+
+
+_skins = None
+
+
+def skins():
+    """Skins do inventário exportadas pelo exportar_skins.cjs."""
+    global _skins
+    if _skins is None:
+        _skins = []
+        mf = os.path.join(GAMEPLAY_DIR, "skins.json")
+        if os.path.exists(mf):
+            with open(mf) as fh:
+                for it in json.load(fh):
+                    if os.path.exists(os.path.join(GAMEPLAY_DIR, it["arquivo"])):
+                        _skins.append(it)
+    return _skins
+
+
+RAR_ORDEM = {"comum": 0, "raro": 1, "epico": 2, "lendario": 3}
+
+
+def pick_skins(n, tipos=("roupa", "chapeu", "aura", "olhos"), min_rar="raro"):
+    """Escolhe skins vistosas, variando o tipo, das mais raras para as menos."""
+    lst = [x for x in skins() if x["tipo"] in tipos and
+           RAR_ORDEM.get(x["raridade"], 0) >= RAR_ORDEM[min_rar]]
+    lst.sort(key=lambda x: (-RAR_ORDEM.get(x["raridade"], 0), tipos.index(x["tipo"])))
+    out, usados = [], set()
+    for x in lst:  # primeiro um de cada tipo, depois o resto
+        if x["tipo"] not in usados:
+            out.append(x)
+            usados.add(x["tipo"])
+    out += [x for x in lst if x not in out]
+    return out[:n]
+
+
+@functools.lru_cache(maxsize=256)
+def skin_image(arquivo, size):
+    im = Image.open(os.path.join(GAMEPLAY_DIR, arquivo)).convert("RGBA")
+    k = size / max(im.size)
+    return im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))),
+                     Image.LANCZOS)
+
+
+def hexrgb(h):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)) if len(h) == 6 else WHITE
+
 
 
 def game(i, name=None):
@@ -567,6 +627,21 @@ def progress_bar(img, c, t, dur):
 
 
 @functools.lru_cache(maxsize=8)
+def logo_image(size, radius_frac=0.0):
+    """Logo KAVIX ARCADE (foto do perfil). radius_frac=0.5 vira círculo."""
+    if os.path.exists(LOGO):
+        im = Image.open(LOGO).convert("RGBA").resize((size, size), Image.LANCZOS)
+    else:  # sem o arquivo: usa o mascote desenhado
+        im = Image.new("RGBA", (size, size), (20, 16, 40, 255))
+        ms = scaled(mascot(), size * 1.3 / 600)
+        im.alpha_composite(ms, ((size - ms.width) // 2, int(size * 0.02)))
+    if radius_frac:
+        m = rounded((size, size), int(size * radius_frac), WHITE).getchannel("A")
+        im.putalpha(m)
+    return im
+
+
+@functools.lru_cache(maxsize=8)
 def handle_layer(u):
     """Perfil no topo, como num post: avatar do mascote + @ + 'Patrocinado'."""
     av = int(78 * u)
@@ -575,9 +650,7 @@ def handle_layer(u):
     m = Image.new("L", ring.size, 0)
     ImageDraw.Draw(m).ellipse((0, 0, ring.width - 1, ring.height - 1), fill=255)
     ring.putalpha(m)
-    inner = Image.new("RGBA", (av, av), (20, 16, 40, 255))
-    ms = scaled(mascot(), av * 1.3 / 600)
-    inner.alpha_composite(ms, ((av - ms.width) // 2, int(av * 0.02)))
+    inner = logo_image(av).copy()
     im2 = Image.new("L", (av, av), 0)
     ImageDraw.Draw(im2).ellipse((0, 0, av - 1, av - 1), fill=255)
     inner.putalpha(im2)
@@ -708,6 +781,7 @@ def sc_items(src_bg, texts=()):
         cw = int((c.W * 0.78 if c.vertical else c.H * 0.56) / 2)
         ch = int(cw * 1.2)
         gx, gy = c.cx, c.Y(0.52 if c.vertical else 0.55)
+        reais = pick_skins(4)
         for i, (c1, c2) in enumerate(MASCOT_SKINS):
             lt = t - 0.5 - i * 0.18
             if lt < 0:
@@ -718,19 +792,66 @@ def sc_items(src_bg, texts=()):
             k = spring(lt / 0.5)
             card = rounded((cw, ch), int(34 * c.u), (255, 255, 255, 38),
                            outline=(255, 255, 255, 90), width=max(2, int(3 * c.u)))
-            m = scaled(mascot(600, c1, c2), cw * 0.95 / 600)
-            card.alpha_composite(m, ((cw - m.width) // 2,
-                                     int(ch * 0.42 - m.height / 2 +
-                                         math.sin(t * 4 + i) * 8 * c.u)))
-            chip = sticker("EXCLUSIVO", int(30 * c.u), "brand", INK)
+            if i < len(reais):  # skin de verdade do inventário
+                it = reais[i]
+                m = skin_image(it["arquivo"], int(cw * 0.68))
+                card.alpha_composite(m, ((cw - m.width) // 2,
+                                         int(ch * 0.38 - m.height / 2 +
+                                             math.sin(t * 4 + i) * 8 * c.u)))
+                nm = text_layer(it["nome"], int(34 * c.u), path=F_BOLD, shadow_a=150)
+                card.alpha_composite(nm, ((cw - nm.width) // 2, int(ch * 0.66)))
+                chip = sticker(it["raridade_nome"].upper(), int(26 * c.u),
+                               hexrgb(it["cor"]), INK)
+            else:
+                m = scaled(mascot(600, c1, c2), cw * 0.95 / 600)
+                card.alpha_composite(m, ((cw - m.width) // 2,
+                                         int(ch * 0.42 - m.height / 2 +
+                                             math.sin(t * 4 + i) * 8 * c.u)))
+                chip = sticker("EXCLUSIVO", int(30 * c.u), "brand", INK)
             card.alpha_composite(chip, ((cw - chip.width) // 2,
-                                        int(ch * 0.8 - chip.height / 2)))
+                                        int(ch * 0.85 - chip.height / 2)))
             card = card.rotate((-1) ** i * 3 * (1 - k), expand=True,
                                resample=Image.BICUBIC)
             put(img, set_alpha(scaled(card, lerp(0.4, 1, k)), clamp01(lt / 0.1)), x, y)
             if lt < 0.6:
                 put(img, set_alpha(emoji_layer("✨", int(70 * c.u)), 1 - lt / 0.6),
                     x + cw * 0.38, y - ch * 0.42)
+        img.alpha_composite(top_shade(c.W, c.H))
+        handle(img, c)
+        draw_texts(img, c, t, texts)
+    return f
+
+
+def sc_skin_reveal(src_bg, items, texts=()):
+    """Uma skin por vez, grande, com brilho na cor da raridade."""
+    st = {}
+
+    def f(img, t, dur, c):
+        if "bg" not in st:
+            st["bg"] = Clip(src_bg[0], 540, 960, src_bg[1], HEADER_PX)
+        img.alpha_composite(blurred_bg(st["bg"].get(t), c.W, c.H, 0.62))
+        if not items:
+            return
+        per = dur / len(items)
+        i = min(len(items) - 1, int(t / per))
+        it, lt = items[i], t - i * per
+        col = hexrgb(it["cor"])
+        k = spring(lt / 0.45)
+        size = int(min(c.W, c.H) * (0.62 if c.vertical else 0.5))
+        cy = c.Y(0.5)
+        glow = Image.new("RGBA", (size * 2, size * 2), (0, 0, 0, 0))
+        ImageDraw.Draw(glow).ellipse((size * 0.4, size * 0.4, size * 1.6, size * 1.6),
+                                     fill=col + (150,))
+        glow = glow.filter(ImageFilter.GaussianBlur(size * 0.18))
+        put(img, set_alpha(scaled(glow, lerp(0.5, 1, k)), clamp01(lt / 0.15)), c.cx, cy)
+        sk = skin_image(it["arquivo"], size)
+        sk = sk.rotate(lerp(-25, 0, k), expand=True, resample=Image.BICUBIC)
+        put(img, set_alpha(scaled(sk, lerp(0.2, 1, k) * (1 + 0.03 * math.sin(t * 6))),
+                           clamp01(lt / 0.08)), c.cx, cy + math.sin(t * 4) * 10 * c.u)
+        draw_sticker(img, it["raridade_nome"].upper(), c.cx,
+                     cy - size * 0.62, 44 * c.u, lt - 0.1, -4, col, INK)
+        caption(img, it["nome"], c.cx, cy + size * 0.66, c.cap_size * 0.9, lt - 0.15,
+                c.max_w, highlight=(0,) if it["raridade"] == "lendario" else ())
         img.alpha_composite(top_shade(c.W, c.H))
         handle(img, c)
         draw_texts(img, c, t, texts)
@@ -768,9 +889,11 @@ def sc_cta(src_bg, title="Cria sua conta agora", button="Criar minha conta"):
         def Y(o):
             return top + o * k
 
-        if t > 0.2:
-            put(img, scaled(mascot(), 0.42 * k * spring((t - 0.2) / 0.5)),
-                c.cx, top + 10 * k + math.sin(t * 5) * 6 * k)
+        if t > 0.2:  # logo do perfil no topo do cartão
+            lg = logo_image(int(230 * k), 0.24)
+            put(img, shadow(lg.size, int(55 * k), 20 * k, 140), c.cx, top - 10 * k)
+            put(img, scaled(lg, spring((t - 0.2) / 0.5)),
+                c.cx, top - 18 * k + math.sin(t * 5) * 6 * k)
         draw_sticker(img, "🎁 itens exclusivos no cadastro", c.cx, Y(170), 38 * k,
                      t - 0.3, -2, LIME, BLACK)
         caption(img, title, c.cx, Y(300), 86 * k, t - 0.4, cw * 0.86,
@@ -940,7 +1063,7 @@ def spec_arcade(W, H):
     lib = library()
     sc = [(2.4, sc_game(at(lib[0]["celular"], 0.3), texts=[
         (0.0, 2.4, "label", "POV:", {"y": 0.3, "size": 58, "rot": -4}),
-        (0.15, 2.4, "cap", f"você achou {TOTAL_JOGOS} jogos num site só 🎮",
+        (0.15, 2.4, "cap", f"você achou {total_jogos()} jogos num site só 🎮",
          {"y": 0.42, "hl": (2, 3)}),
     ]))]
     for i, g in enumerate(lib[1:], 1):
@@ -997,7 +1120,7 @@ def spec_plataformas(W, H):
             (0.2, 3.0, "cap", "sem baixar nada 🙌", {"y": 0.86, "hl": (2,)})])),
     ]
     for k, g in enumerate(lib[3:7]):
-        texts = [(0, 1.1, "cap", f"{TOTAL_JOGOS} jogos te esperando 🎮",
+        texts = [(0, 1.1, "cap", f"{total_jogos()} jogos te esperando 🎮",
                   {"hl": (0, 1)})] if k == 0 else []
         sc.append((1.1, sc_game(at(g["celular"], 0.4), texts, name=g["nome"])))
     sc.append((5.0, sc_cta(at(game(10, "Memória")["celular"], 0.5))))
@@ -1028,7 +1151,7 @@ def spec_itens(W, H):
             (2.4, 4.6, "label", "só pra quem cria conta agora",
              {"y": 0.86 if H > W else 0.9, "size": 46})])),
         (2.6, sc_game(at(game(1, "Passagem")["celular"], 0.2), name="Passagem",
-                      texts=[(0.1, 2.6, "cap", f"e ainda {TOTAL_JOGOS} jogos pra jogar 🎮",
+                      texts=[(0.1, 2.6, "cap", f"e ainda {total_jogos()} jogos pra jogar 🎮",
                               {"y": 0.4, "hl": (2, 3)})])),
         (5.0, sc_cta(at(game(3, "Três Pistas")["celular"], 0.5))),
     ]
@@ -1036,7 +1159,74 @@ def spec_itens(W, H):
                  extra=[("pop", 0.5 + k * 0.18) for k in range(4)])
 
 
+def spec_todos(W, H):
+    """Todos os jogos gravados em cortes de menos de 1 segundo."""
+    lib = library()
+    n = total_jogos()
+    sc = [(2.0, sc_game(at(lib[0]["celular"], 0.3), texts=[
+        (0.0, 2.0, "cap", f"{n} jogos em {n} segundos 😳", {"y": 0.4, "hl": (0, 3)})]))]
+    for i, g in enumerate(lib[1:], 2):
+        sc.append((0.75, sc_game(at(g["celular"], 0.45), name=g["nome"], texts=[
+            (0, 0.75, "label", f"#{i}", {"y": 0.84 if H > W else 0.86, "size": 44,
+                                         "rot": 4, "bg": LIME})])))
+    sc.append((4.8, sc_cta(at(lib[0]["celular"], 0.7))))
+    return build(sc, 150, "AFCG", 9)
+
+
+def spec_skins(W, H):
+    """Skins reais do inventário + jogo com as skins + CTA."""
+    lib = library()
+    todas = skins()
+    n = f"+{len(todas) // 10 * 10}" if len(todas) >= 20 else "várias"
+    reveal = sorted(pick_skins(6), key=lambda x: RAR_ORDEM.get(x["raridade"], 0))
+    sc = [
+        (2.4, sc_game(at(game(0)["celular"], 0.5), texts=[
+            (0.1, 2.4, "cap", "tua bolinha pode ficar assim 👀", {"y": 0.38, "hl": (4,)})])),
+        (5.4, sc_skin_reveal(at(game(3)["celular"], 0.3), reveal, texts=[
+            (0.0, 5.4, "cap", f"{n} skins pra liberar 🔥", {"y": 0.16 if H > W else 0.12,
+                                                            "hl": (0,), "size": 0.8})])),
+        (3.6, sc_items(at(game(5)["celular"], 0.3), texts=[
+            (0.0, 3.6, "cap", "cadastro novo = itens exclusivos 🎁",
+             {"y": 0.19 if H > W else 0.14, "hl": (3, 4)})])),
+        (5.0, sc_cta(at(lib[0]["celular"], 0.6))),
+    ]
+    return build(sc, 140, "FCGA", 11,
+                 extra=[("pop", 2.4 + k * 0.9) for k in range(6)])
+
+
+TOP5 = [("Empilha", "esse aqui é tenso 😤"),
+        ("Cobrinha", "clássico que não envelhece 🐍"),
+        ("Espinhos", "um toque errado e já era 💀"),
+        ("Quebra Blocos", "não consigo parar 😭"),
+        ("Reflexo", "o mais viciante de todos 👑")]
+
+
+def spec_top5(W, H):
+    """Contagem regressiva do 5 ao 1 com reações e chamada pra comentar."""
+    lib = library()
+    sc = [(2.2, sc_game(at(game(4)["celular"], 0.5), texts=[
+        (0.0, 2.2, "label", "TOP 5", {"y": 0.27, "size": 80, "rot": -4, "bg": LIME}),
+        (0.2, 2.2, "cap", "jogos mais viciantes do KAVIX 🔥", {"y": 0.4, "hl": (2,)})]))]
+    for k, (nome, fala) in enumerate(TOP5):
+        g = game(k * 5 + 1, nome)
+        rank = 5 - k
+        sc.append((2.8, sc_game(at(g["celular"], 0.4), texts=[
+            (0.0, 2.8, "label", f"#{rank}", {"y": 0.19, "size": 110, "rot": -5,
+                                             "bg": LIME if rank > 1 else (255, 206, 64)}),
+            (0.1, 2.8, "label", g["nome"], {"y": 0.29, "size": 60, "rot": 3}),
+            (0.6, 2.8, "cap", fala, {"y": 0.62, "hl": (len(fala.split()) - 2,)})])))
+    sc.append((2.0, sc_collage(at(game(9, "Cobrinha")["celular"], 0.2),
+                               at(game(2, "Quebra Blocos")["pc"], 0.5), texts=[
+        (0.1, 2.0, "cap", "concorda? comenta o teu 👇", {"y": 0.86, "hl": (2, 3)})])))
+    sc.append((5.0, sc_cta(at(lib[0]["celular"], 0.6))))
+    return build(sc, 138, "ADFE", 12,
+                 extra=[("pop", 2.2 + 2.8 * k + 0.02) for k in range(5)])
+
+
 VIDEOS = {
+    "top5": (spec_top5, 1080, 1920),
+    "todos": (spec_todos, 1080, 1920),
+    "skins": (spec_skins, 1080, 1920),
     "arcade": (spec_arcade, 1080, 1920),
     "arcade_feed": (spec_arcade, 1080, 1350),
     "arcade_youtube": (spec_arcade, 1920, 1080),

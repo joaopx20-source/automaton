@@ -10,7 +10,7 @@ Estilo de post atual de TikTok/Reels:
   "duvido você passar de 30 pontos 😤", "e tu aí parado 💀");
 - **legendas palavra por palavra** com contorno e destaque em verde-limão, com emojis;
 - **etiquetas brancas** inclinadas com o nome de cada jogo;
-- **perfil `@kavixbrasil`** com o mascote e **barra de progresso** no topo, como num post;
+- **perfil `@kavixarcade`** com a foto do Instagram (`marca/logo.png`) e **barra de progresso** no topo, como num post;
 - **cortes rápidos com zoom** e trilha **trap/phonk** sintetizada;
 - PC mostrado como **janela do navegador** (com kavixbrasil.com.br na barra);
 - final em **cartão de vidro** com o botão no degradê roxo → ciano do site.

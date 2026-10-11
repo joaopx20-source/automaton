@@ -1,0 +1,932 @@
+[
+  {
+    "id": "r_raio",
+    "nome": "Raio",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/r_raio.png"
+  },
+  {
+    "id": "r_vulto",
+    "nome": "Vulto",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/r_vulto.png"
+  },
+  {
+    "id": "r_blindado",
+    "nome": "Blindado",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/r_blindado.png"
+  },
+  {
+    "id": "r_mascarado",
+    "nome": "Mascarado",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/r_mascarado.png"
+  },
+  {
+    "id": "r_astronauta",
+    "nome": "Astronauta",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "lendario",
+    "raridade_nome": "Lendário",
+    "cor": "#ffd24a",
+    "arquivo": "skins/r_astronauta.png"
+  },
+  {
+    "id": "r_ninja",
+    "nome": "Ninja",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/r_ninja.png"
+  },
+  {
+    "id": "r_farao",
+    "nome": "Faraó",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/r_farao.png"
+  },
+  {
+    "id": "r_mago",
+    "nome": "Mago",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "lendario",
+    "raridade_nome": "Lendário",
+    "cor": "#ffd24a",
+    "arquivo": "skins/r_mago.png"
+  },
+  {
+    "id": "r_bombeiro",
+    "nome": "Bombeiro",
+    "tipo": "roupa",
+    "tipo_nome": "Roupa",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/r_bombeiro.png"
+  },
+  {
+    "id": "b_cor",
+    "nome": "Cor Estreia",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/b_cor.png"
+  },
+  {
+    "id": "v_amigo",
+    "nome": "Cor Convidado",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/v_amigo.png"
+  },
+  {
+    "id": "v_cor",
+    "nome": "Cor Amizade",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/v_cor.png"
+  },
+  {
+    "id": "c_neon",
+    "nome": "Cor Neon",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_neon.png"
+  },
+  {
+    "id": "c_fire",
+    "nome": "Cor Fogo",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_fire.png"
+  },
+  {
+    "id": "c_mint",
+    "nome": "Cor Menta",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_mint.png"
+  },
+  {
+    "id": "c_gold",
+    "nome": "Cor Ouro",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/c_gold.png"
+  },
+  {
+    "id": "c_ceu",
+    "nome": "Azul Céu",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_ceu.png"
+  },
+  {
+    "id": "c_limao",
+    "nome": "Verde Limão",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_limao.png"
+  },
+  {
+    "id": "c_laranja",
+    "nome": "Laranja",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_laranja.png"
+  },
+  {
+    "id": "c_aco",
+    "nome": "Cinza Aço",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_aco.png"
+  },
+  {
+    "id": "c_chiclete",
+    "nome": "Rosa Chiclete",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_chiclete.png"
+  },
+  {
+    "id": "c_areia",
+    "nome": "Areia",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_areia.png"
+  },
+  {
+    "id": "c_oceano",
+    "nome": "Oceano",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_oceano.png"
+  },
+  {
+    "id": "c_vinho",
+    "nome": "Vinho",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_vinho.png"
+  },
+  {
+    "id": "c_floresta",
+    "nome": "Floresta",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/c_floresta.png"
+  },
+  {
+    "id": "c_magma",
+    "nome": "Magma",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/c_magma.png"
+  },
+  {
+    "id": "c_aurora",
+    "nome": "Aurora",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/c_aurora.png"
+  },
+  {
+    "id": "c_galaxia",
+    "nome": "Galáxia",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/c_galaxia.png"
+  },
+  {
+    "id": "c_prisma",
+    "nome": "Prisma",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/c_prisma.png"
+  },
+  {
+    "id": "c_kavix",
+    "nome": "Cor Kavix",
+    "tipo": "cor",
+    "tipo_nome": "Cor",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/c_kavix.png"
+  },
+  {
+    "id": "b_olhos",
+    "nome": "Óculos Roxos",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/b_olhos.png"
+  },
+  {
+    "id": "e_shades",
+    "nome": "Óculos Escuros",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/e_shades.png"
+  },
+  {
+    "id": "e_round",
+    "nome": "Óculos Redondos",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/e_round.png"
+  },
+  {
+    "id": "e_visor",
+    "nome": "Viseira",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/e_visor.png"
+  },
+  {
+    "id": "e_pixel",
+    "nome": "Olhos de Pixel",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/e_pixel.png"
+  },
+  {
+    "id": "e_sono",
+    "nome": "Olhos de Sono",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/e_sono.png"
+  },
+  {
+    "id": "e_bravo",
+    "nome": "Olhar Bravo",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/e_bravo.png"
+  },
+  {
+    "id": "e_ouro",
+    "nome": "Óculos Dourados",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/e_ouro.png"
+  },
+  {
+    "id": "e_espelho",
+    "nome": "Óculos Espelhados",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/e_espelho.png"
+  },
+  {
+    "id": "e_cyber",
+    "nome": "Visor Cyber",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/e_cyber.png"
+  },
+  {
+    "id": "e_chama",
+    "nome": "Viseira de Chama",
+    "tipo": "olhos",
+    "tipo_nome": "Olhos",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/e_chama.png"
+  },
+  {
+    "id": "h_cap",
+    "nome": "Boné",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/h_cap.png"
+  },
+  {
+    "id": "h_crown",
+    "nome": "Coroa",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/h_crown.png"
+  },
+  {
+    "id": "h_horns",
+    "nome": "Chifrinhos",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/h_horns.png"
+  },
+  {
+    "id": "h_halo",
+    "nome": "Auréola",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/h_halo.png"
+  },
+  {
+    "id": "h_fita",
+    "nome": "Fita de Cabeça",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/h_fita.png"
+  },
+  {
+    "id": "h_festa",
+    "nome": "Chapéu de Festa",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/h_festa.png"
+  },
+  {
+    "id": "h_bandana",
+    "nome": "Bandana",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/h_bandana.png"
+  },
+  {
+    "id": "h_boina",
+    "nome": "Boina",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/h_boina.png"
+  },
+  {
+    "id": "h_cartola",
+    "nome": "Cartola",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/h_cartola.png"
+  },
+  {
+    "id": "h_capacete",
+    "nome": "Capacete Espacial",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/h_capacete.png"
+  },
+  {
+    "id": "h_chifogo",
+    "nome": "Chifres de Fogo",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/h_chifogo.png"
+  },
+  {
+    "id": "h_coroagelo",
+    "nome": "Coroa de Gelo",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/h_coroagelo.png"
+  },
+  {
+    "id": "h_suprema",
+    "nome": "Coroa Suprema",
+    "tipo": "chapeu",
+    "tipo_nome": "Chapéu",
+    "raridade": "lendario",
+    "raridade_nome": "Lendário",
+    "cor": "#ffd24a",
+    "arquivo": "skins/h_suprema.png"
+  },
+  {
+    "id": "b_rastro",
+    "nome": "Rastro Branco",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/b_rastro.png"
+  },
+  {
+    "id": "v_rastro",
+    "nome": "Rastro Amizade",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/v_rastro.png"
+  },
+  {
+    "id": "t_blue",
+    "nome": "Rastro Azul",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_blue.png"
+  },
+  {
+    "id": "t_pink",
+    "nome": "Rastro Rosa",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_pink.png"
+  },
+  {
+    "id": "t_gold",
+    "nome": "Rastro Dourado",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/t_gold.png"
+  },
+  {
+    "id": "t_branco",
+    "nome": "Rastro Branco",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_branco.png"
+  },
+  {
+    "id": "t_roxo",
+    "nome": "Rastro Roxo",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_roxo.png"
+  },
+  {
+    "id": "t_verde",
+    "nome": "Rastro Verde",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_verde.png"
+  },
+  {
+    "id": "t_vermelho",
+    "nome": "Rastro Vermelho",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_vermelho.png"
+  },
+  {
+    "id": "t_ciano",
+    "nome": "Rastro Ciano",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_ciano.png"
+  },
+  {
+    "id": "t_amarelo",
+    "nome": "Rastro Amarelo",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_amarelo.png"
+  },
+  {
+    "id": "t_prata",
+    "nome": "Rastro Prata",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/t_prata.png"
+  },
+  {
+    "id": "t_musgo",
+    "nome": "Rastro Musgo",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/t_musgo.png"
+  },
+  {
+    "id": "t_fogo",
+    "nome": "Rastro de Fogo",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/t_fogo.png"
+  },
+  {
+    "id": "t_arco",
+    "nome": "Rastro Arco-íris",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/t_arco.png"
+  },
+  {
+    "id": "t_estelar",
+    "nome": "Rastro Estelar",
+    "tipo": "rastro",
+    "tipo_nome": "Rastro",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/t_estelar.png"
+  },
+  {
+    "id": "a_estelar",
+    "nome": "Aura Estelar",
+    "tipo": "aura",
+    "tipo_nome": "Aura",
+    "raridade": "lendario",
+    "raridade_nome": "Lendário",
+    "cor": "#ffd24a",
+    "arquivo": "skins/a_estelar.png"
+  },
+  {
+    "id": "a_fogo",
+    "nome": "Aura de Fogo",
+    "tipo": "aura",
+    "tipo_nome": "Aura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/a_fogo.png"
+  },
+  {
+    "id": "a_gelo",
+    "nome": "Aura de Gelo",
+    "tipo": "aura",
+    "tipo_nome": "Aura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/a_gelo.png"
+  },
+  {
+    "id": "a_eletrica",
+    "nome": "Aura Elétrica",
+    "tipo": "aura",
+    "tipo_nome": "Aura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/a_eletrica.png"
+  },
+  {
+    "id": "a_sombra",
+    "nome": "Aura Sombria",
+    "tipo": "aura",
+    "tipo_nome": "Aura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/a_sombra.png"
+  },
+  {
+    "id": "a_dourada",
+    "nome": "Aura Dourada",
+    "tipo": "aura",
+    "tipo_nome": "Aura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/a_dourada.png"
+  },
+  {
+    "id": "a_cosmos",
+    "nome": "Aura Cosmos",
+    "tipo": "aura",
+    "tipo_nome": "Aura",
+    "raridade": "lendario",
+    "raridade_nome": "Lendário",
+    "cor": "#ffd24a",
+    "arquivo": "skins/a_cosmos.png"
+  },
+  {
+    "id": "b_moldura",
+    "nome": "Moldura Estreia",
+    "tipo": "moldura",
+    "tipo_nome": "Moldura",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/b_moldura.png"
+  },
+  {
+    "id": "v_moldura",
+    "nome": "Moldura Embaixador",
+    "tipo": "moldura",
+    "tipo_nome": "Moldura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/v_moldura.png"
+  },
+  {
+    "id": "m_ouro",
+    "nome": "Moldura Dourada",
+    "tipo": "moldura",
+    "tipo_nome": "Moldura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/m_ouro.png"
+  },
+  {
+    "id": "m_neon",
+    "nome": "Moldura Neon",
+    "tipo": "moldura",
+    "tipo_nome": "Moldura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/m_neon.png"
+  },
+  {
+    "id": "m_rubi",
+    "nome": "Moldura Rubi",
+    "tipo": "moldura",
+    "tipo_nome": "Moldura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/m_rubi.png"
+  },
+  {
+    "id": "m_esmeralda",
+    "nome": "Moldura Esmeralda",
+    "tipo": "moldura",
+    "tipo_nome": "Moldura",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/m_esmeralda.png"
+  },
+  {
+    "id": "b_titulo",
+    "nome": "Título: Recruta",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/b_titulo.png"
+  },
+  {
+    "id": "v_titulo",
+    "nome": "Título: Embaixador",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/v_titulo.png"
+  },
+  {
+    "id": "x_novato",
+    "nome": "Título: Novato",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/x_novato.png"
+  },
+  {
+    "id": "x_persistente",
+    "nome": "Título: Persistente",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "comum",
+    "raridade_nome": "Comum",
+    "cor": "#8b93a8",
+    "arquivo": "skins/x_persistente.png"
+  },
+  {
+    "id": "x_veterano",
+    "nome": "Título: Veterano",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/x_veterano.png"
+  },
+  {
+    "id": "x_recordista",
+    "nome": "Título: Recordista",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "raro",
+    "raridade_nome": "Raro",
+    "cor": "#3ad6ff",
+    "arquivo": "skins/x_recordista.png"
+  },
+  {
+    "id": "x_lendario",
+    "nome": "Título: Lendário",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/x_lendario.png"
+  },
+  {
+    "id": "x_elite",
+    "nome": "Título: Elite",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/x_elite.png"
+  },
+  {
+    "id": "x_imparavel",
+    "nome": "Título: Imparável",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/x_imparavel.png"
+  },
+  {
+    "id": "x_campeao",
+    "nome": "Título: Campeão",
+    "tipo": "titulo",
+    "tipo_nome": "Título",
+    "raridade": "epico",
+    "raridade_nome": "Épico",
+    "cor": "#b06bff",
+    "arquivo": "skins/x_campeao.png"
+  }
+]
