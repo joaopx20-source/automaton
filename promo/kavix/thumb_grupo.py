@@ -122,5 +122,79 @@ def main():
     print("ok")
 
 
+def raios_duplo():
+    """Fundo dividido na diagonal: lado rosa (você) x lado ciano (o desafio)."""
+    a = raios(420, 560)
+    b = raios(1500, 540)
+    tint_a = Image.new("RGBA", (W, H), PINK + (90,))
+    tint_b = Image.new("RGBA", (W, H), g.SKY + (60,))
+    a.alpha_composite(tint_a)
+    b.alpha_composite(tint_b)
+    m = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(m).polygon([(760, 0), (W, 0), (W, H), (560, H)], fill=255)
+    a.paste(b, (0, 0), m)
+    d = ImageDraw.Draw(a)
+    d.line([(760, 0), (560, H)], fill=(255, 255, 255, 255), width=10)
+    return a
+
+
+def main_v2():
+    """Versão 2: desafio do recorde."""
+    im = raios_duplo()
+
+    # jogos do lado esquerdo
+    for nome, x, y, h, rot in (("bolhas", 200, 600, 640, 10), ("helice", 560, 620, 640, -9),
+                               ("empilha", 380, 560, 760, 0)):
+        g.put(im, celular(nome, h, rot), x, y)
+    g.put(im, g.emoji_layer("🔥", 150).rotate(12, expand=True, resample=Image.BICUBIC), 110, 170)
+
+    # VS no corte
+    g.put(im, selo("VS", 110, "brand", g.WHITE, -6), 680, 560)
+
+    # texto do desafio
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(sh).ellipse((820, -150, 2300, 1250), fill=(6, 3, 20, 170))
+    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(120)))
+    g.put(im, texto_grande("DUVIDO TU", 92, g.WHITE, 3), 1360, 150)
+    g.put(im, texto_grande("BATER MEU", 92, g.WHITE, 3), 1360, 275)
+    g.put(im, texto_grande("RECORDE", 150, GOLD, 3), 1350, 430)
+
+    # cartão do recorde
+    cw, ch = 820, 230
+    card = g.rounded((cw, ch), 56, (14, 10, 36, 235), outline=GOLD + (255,), width=8)
+    tr = g.emoji_layer("🏆", 150)
+    card.alpha_composite(tr, (40, (ch - tr.height) // 2))
+    n = g.text_layer("2.428", 130, fill=g.LIME, path=g.F_DISPLAY, shadow_a=180)
+    card.alpha_composite(n, (220, (ch - n.height) // 2 - 6))
+    pts = g.text_layer("pts", 44, fill=g.WHITE, path=g.F_DISPLAY)
+    card.alpha_composite(pts, (min(cw - pts.width - 30, 220 + n.width - 20), ch - pts.height - 42))
+    card = card.rotate(-3, expand=True, resample=Image.BICUBIC)
+    sc = g.shadow(card.size, 56, 30, 200)
+    p = (sc.width - card.width) // 2
+    sc.alpha_composite(card, (p, p - 10))
+    g.put(im, sc, 1320, 680)
+
+    # gema e selo ranked
+    gm = C.gema((150, 230, 255), (60, 120, 255), 200).rotate(14, expand=True,
+                                                            resample=Image.BICUBIC)
+    g.put(im, gm, 1790, 600)
+    g.put(im, selo("💎 RANKED", 42, g.SKY, g.INK, 6), 1740, 800)
+
+    # faixa inferior
+    g.put(im, selo("🎮 30 JOGOS GRÁTIS • CELULAR E PC", 46, g.LIME, g.INK, -2), 1340, 930)
+
+    # logo
+    lg = g.logo_image(150, 0.24)
+    g.put(im, g.shadow(lg.size, 36, 22, 190), 1820, 110)
+    g.put(im, lg, 1820, 100)
+
+    rgb = im.convert("RGB")
+    rgb.save(os.path.join(OUT, "thumbnail_v2.jpg"), quality=92)
+    rgb.resize((1280, 720), Image.LANCZOS).save(os.path.join(OUT, "thumbnail_v2_1280x720.jpg"),
+                                                quality=92)
+    print("ok v2")
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    main_v2() if "v2" in sys.argv[1:] else main()
