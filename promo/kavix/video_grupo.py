@@ -22,7 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "grupo_facebook")
 W, H = 1920, 1080
 FPS = g.FPS
-FADE = 0.35
+PUNCH = 0.22
 
 TAG = {"modo": ("MODO DE JOGO", (56, 210, 255)),
        "beneficio": ("BENEFÍCIO", (198, 255, 61)),
@@ -94,6 +94,7 @@ def logo_canto(im):
 def bloco_texto(im, t, x, tipo, titulo, sub, chips=()):
     """Etiqueta do tema + título grande + subtítulo + chips, entrando em sequência."""
     nome, cor = TAG[tipo]
+    t *= 1.8  # entrada rápida
     a = g.clamp01(t / 0.25)
     dx = (1 - g.ease_out_back(t / 0.5)) * 60
     tag = g.sticker(nome, 34, cor, g.INK, g.F_DISPLAY)
@@ -135,21 +136,39 @@ def bloco_texto(im, t, x, tipo, titulo, sub, chips=()):
 # ----------------------------------------------------------------- cenas
 # f(im, t, dur) -> desenha a cena no tempo local t
 
-def cena_intro():
+def cena_montagem(nomes, passo, titulo="30 JOGOS • celular e PC"):
+    """Abertura agitada: 3 jogos por vez trocando a cada `passo` segundos."""
+    srcs = [cel(n, (0.25 + 0.17 * k) % 0.8) for k, n in enumerate(nomes)]
+    clips = {}
+
+    def clip(j):
+        if j not in clips:
+            clips[j] = g.Clip(srcs[j][0], 540, 960, srcs[j][1], g.HEADER_PX)
+        return clips[j]
+
     def f(im, t, dur):
-        im.alpha_composite(fundo(1))
-        k = g.spring(t / 0.6)
-        lg = g.logo_image(380, 0.24)
-        g.put(im, g.shadow(lg.size, 90, 40, 170), W / 2, 380 + 14)
-        g.put(im, g.scaled(lg, g.lerp(0.5, 1, k)), W / 2, 380)
-        if t > 0.5:
-            g.ACCENT[0] = g.LIME
-            g.caption(im, "bora jogar com a gente?", W / 2, 700, 92, t - 0.5, 1500,
-                      highlight=(2, 3), per_word=0.08)
-        if t > 1.3:
-            lay = g.text_layer("30 jogos  •  ranked com patentes  •  recompensas todo dia",
-                               40, fill=(220, 220, 235), path=g.F_BOLD)
-            g.put(im, g.set_alpha(lay, g.clamp01((t - 1.3) / 0.3)), W / 2, 830)
+        k = int(t / passo)
+        lt = t - k * passo
+        n = len(nomes)
+        im.alpha_composite(fundo(30 + k % 4, (g.VIOLET, (255, 110, 150), g.SKY, (255, 206, 64))[k % 4]))
+        punch = 1 + 0.10 * math.exp(-lt * 12)
+        for j, (x, h, rot) in ((k + 3, (380, 700, 6)), (k + 6, (1540, 700, -6)), (k, (960, 940, 0))):
+            j %= n
+            card = card_retrato(clip(j).get(lt), h).rotate(rot, expand=True, resample=Image.BICUBIC)
+            if x == 960:
+                card = g.scaled(card, punch)
+            g.put(im, card, x, H / 2 + (0 if x == 960 else 40))
+            if x == 960:
+                g.draw_sticker(im, nomes[j], 960, 70, 54, lt + 0.15, -3, g.WHITE, g.BLACK,
+                               path=g.F_DISPLAY)
+        if t > passo * 1.5:
+            g.draw_sticker(im, titulo, 960, H - 70, 50, t - passo * 1.5, 2, g.LIME, g.INK,
+                           path=g.F_DISPLAY)
+        # flash rápido em cada troca
+        if lt < 0.08 and t > 0.05:
+            fl = Image.new("RGBA", (W, H), (255, 255, 255, int(110 * (1 - lt / 0.08))))
+            im.alpha_composite(fl)
+        logo_canto(im)
     return f
 
 
@@ -162,9 +181,9 @@ def cena_jogo(tipo, titulo, sub, src, lado, chips=(), nome=None, seed=2):
         im.alpha_composite(fundo(seed))
         fr = st["c"].get(t)
         card = card_retrato(fr, 860)
-        k = g.spring(t / 0.55)
+        k = g.spring(t / 0.3)
         vx = 1420 if lado == "dir" else 500
-        g.put(im, g.set_alpha(g.scaled(card, g.lerp(0.85, 1, k)), g.clamp01(t / 0.2)),
+        g.put(im, g.set_alpha(g.scaled(card, g.lerp(0.85, 1, k)), g.clamp01(t / 0.1)),
               vx, H / 2 + (1 - k) * 40)
         if nome:
             g.draw_sticker(im, nome, vx, 105, 40, t - 0.2, -3, g.WHITE, g.BLACK,
@@ -178,10 +197,10 @@ def cena_arte(tipo, titulo, sub, img, lado, chips=(), seed=3, cor=None):
     def f(im, t, dur):
         im.alpha_composite(fundo(seed, cor or g.VIOLET))
         card = card_imagem(img, 900)
-        k = g.spring(t / 0.55)
+        k = g.spring(t / 0.3)
         z = 1 + 0.04 * t / dur
         vx = 1400 if lado == "dir" else 520
-        g.put(im, g.set_alpha(g.scaled(card, g.lerp(0.85, 1, k) * z), g.clamp01(t / 0.2)),
+        g.put(im, g.set_alpha(g.scaled(card, g.lerp(0.85, 1, k) * z), g.clamp01(t / 0.1)),
               vx, H / 2)
         bloco_texto(im, t, 140 if lado == "dir" else 1000, tipo, titulo, sub, chips)
         logo_canto(im)
@@ -197,9 +216,9 @@ def cena_pc(tipo, titulo, sub, src, chips=()):
         im.alpha_composite(fundo(5, g.SKY, g.VIOLET))
         fr = st["c"].get(t)
         card = g.window_card(fr, 1080, 1.0, bar=not src[0].endswith("_pc.mp4"))
-        k = g.spring(t / 0.55)
+        k = g.spring(t / 0.3)
         g.put(im, g.set_alpha(g.scaled(card.rotate(-2, expand=True, resample=Image.BICUBIC),
-                                       g.lerp(0.85, 1, k)), g.clamp01(t / 0.2)), 1360, H / 2)
+                                       g.lerp(0.85, 1, k)), g.clamp01(t / 0.1)), 1360, H / 2)
         bloco_texto(im, t, 120, tipo, titulo, sub, chips)
         logo_canto(im)
     return f
@@ -213,11 +232,11 @@ def cena_duelo(tipo, titulo, sub, a, b):
             st["a"] = g.Clip(a[0], 540, 960, a[1], g.HEADER_PX)
             st["b"] = g.Clip(b[0], 540, 960, b[1], g.HEADER_PX)
         im.alpha_composite(fundo(7, (255, 90, 110), g.SKY))
-        k = g.spring(t / 0.55)
+        k = g.spring(t / 0.3)
         for j, (key, x, rot, nm, cor) in enumerate((("a", 1180, -4, "VOCÊ", g.LIME),
                                                    ("b", 1620, 4, "TEU AMIGO", g.WHITE))):
             card = card_retrato(st[key].get(t), 760).rotate(rot, expand=True, resample=Image.BICUBIC)
-            g.put(im, g.set_alpha(g.scaled(card, g.lerp(0.8, 1, k)), g.clamp01(t / 0.2)),
+            g.put(im, g.set_alpha(g.scaled(card, g.lerp(0.8, 1, k)), g.clamp01(t / 0.1)),
                   x, H / 2 + 30)
             g.draw_sticker(im, nm, x, 110, 42, t - 0.2 - j * 0.1, rot, cor, g.INK,
                            path=g.F_DISPLAY)
@@ -244,7 +263,7 @@ def cena_cta():
             b = g.cta_button(620, 120, "Jogar agora")
             g.put(im, g.scaled(b, g.spring((t - 0.8) / 0.45) * (1 + 0.03 * math.sin(t * 6))),
                   1300, 520)
-        g.draw_sticker(im, "🔗 kavixbrasil.com.br", 1300, 680, 50, t - 1.0, 0)
+        g.draw_sticker(im, "🔗 kavixbrasil.com.br", 1300, 680, 50, t - 0.8, 0)
         if t > 1.3:
             lay = g.text_layer("comenta teu nick que a gente se desafia 👇", 40,
                                fill=g.WHITE, path=g.F_BOLD, shadow_a=150)
@@ -295,13 +314,15 @@ def _env(n, d):
     return np.exp(-np.arange(n) / g.SR / d)
 
 
-def musica(dur, cortes, seed=11, bpm=118):
-    """House animada: bumbo 4/4, chimbal no contratempo, palma no 2 e 4,
-    baixo saltitante e acordes 'pluck' (bem diferente do trap dos reels)."""
+def musica(dur, cortes, seed=11, bpm=128, drop=None):
+    """House/eletrônica agitada: bumbo 4/4 desde o 1º segundo, chimbal em
+    semicolcheias, palma forte, baixo rolando e stabs de acorde. Virada de
+    caixa antes de `drop` e antes do final."""
     SR = g.SR
     rng = np.random.default_rng(seed)
-    out = np.zeros(int(dur * SR))
+    out = np.zeros(int(dur * SR) + SR)
     beat = 60 / bpm
+    s16 = beat / 4
     prog = [(57, (0, 3, 7)), (53, (0, 4, 7)), (48, (0, 4, 7)), (55, (0, 4, 7))]  # Am F C G
 
     def hz(m):
@@ -313,105 +334,113 @@ def musica(dur, cortes, seed=11, bpm=118):
             j = min(len(out), i + len(sig))
             out[i:j] += sig[:j - i]
 
-    n_beats = int(dur / beat)
-    for b in range(n_beats):
+    def noise(n, k=3):
+        x = rng.uniform(-1, 1, n)
+        return x - np.convolve(x, np.ones(k) / k, "same")
+
+    rolls = [x for x in (drop, dur - 12 * beat) if x]
+    for b in range(int(dur / beat) + 1):
         t = b * beat
-        bar = b // 4
-        root, chord = prog[bar % 4]
-        intro = t < 3.5
-        # bumbo
-        if not intro:
-            n = int(.3 * SR)
+        root, chord = prog[(b // 4) % 4]
+        em_virada = any(r - 2 * beat <= t < r for r in rolls)
+        # bumbo (some durante a virada)
+        if not em_virada:
+            n = int(.28 * SR)
             tt = np.arange(n) / SR
-            f = 50 + 90 * np.exp(-tt / .025)
-            add(np.sin(2 * np.pi * np.cumsum(f) / SR) * _env(n, .16) * .8, t)
+            f = 48 + 110 * np.exp(-tt / .02)
+            add(np.sin(2 * np.pi * np.cumsum(f) / SR) * _env(n, .14) * .9, t)
         # palma no 2 e 4
-        if b % 2 == 1 and not intro:
-            n = int(.2 * SR)
-            x = rng.uniform(-1, 1, n)
-            x = x - np.convolve(x, np.ones(8) / 8, "same")
-            add(x * _env(n, .06) * .22, t)
-        # chimbal no contratempo
-        n = int(.06 * SR)
-        x = rng.uniform(-1, 1, n)
-        x = x - np.convolve(x, np.ones(3) / 3, "same")
-        add(x * _env(n, .02) * (.12 if intro else .18), t + beat / 2)
-        # baixo no contratempo
-        if not intro:
-            n = int(beat * .45 * SR)
+        if b % 2 == 1:
+            n = int(.18 * SR)
+            add(noise(n, 8) * _env(n, .05) * .32, t)
+        # chimbal em semicolcheias (aberto no contratempo)
+        for k in range(4):
+            aberto = k == 2
+            n = int((.16 if aberto else .04) * SR)
+            add(noise(n) * _env(n, .05 if aberto else .012) * (.16 if aberto else .09 + .04 * (k % 2)),
+                t + k * s16)
+        # baixo rolando em semicolcheias (pula a cabeça do tempo, estilo house)
+        for k in (1, 2, 3):
+            n = int(s16 * .9 * SR)
             tt = np.arange(n) / SR
-            f = hz(root - 24 + (12 if b % 4 == 3 else 0))
+            f = hz(root - 24 + (12 if k == 3 else 0))
             saw = 2 * ((tt * f) % 1) - 1
-            saw = np.convolve(saw, np.ones(10) / 10, "same")
-            add(saw * np.minimum(1, tt / .005) * _env(n, .12) * .35, t + beat / 2)
-        # acordes pluck: no tempo 1 e no "e" do 2 e do 3 (ritmo de house)
-        for off in ((0, .75 * beat * 2 / 2, 1.5 * beat) if b % 4 == 0 else ((.5 * beat,) if b % 2 else ())):
-            n = int(.35 * SR)
-            tt = np.arange(n) / SR
-            sig = np.zeros(n)
-            for semi in chord + (12,):
-                f = hz(root + semi)
-                sig += (np.sin(2 * np.pi * f * tt) + .3 * np.sin(2 * np.pi * 2 * f * tt))
-            add(sig * _env(n, .11) * .05, t + off)
-    # pad suave por baixo
-    tt = np.arange(len(out)) / SR
-    pad = np.zeros(len(out))
-    for k in range(int(dur / (4 * beat)) + 1):
-        i0, i1 = int(k * 4 * beat * SR), min(len(out), int((k + 1) * 4 * beat * SR))
-        if i0 >= len(out):
-            break
-        root, chord = prog[k % 4]
-        for semi in chord:
-            pad[i0:i1] += np.sin(2 * np.pi * hz(root + semi - 12) * tt[i0:i1]) * .03
-    out += pad
-    # 'whoosh' suave nas trocas de cena
+            saw = np.convolve(saw, np.ones(8) / 8, "same")
+            add(saw * np.minimum(1, tt / .004) * _env(n, .07) * .3, t + k * s16)
+        # stabs de acorde sincopados
+        if b % 4 in (0, 2):
+            for off in ((0.5 * beat, 1.5 * beat) if b % 4 == 0 else (0.75 * beat,)):
+                n = int(.22 * SR)
+                tt = np.arange(n) / SR
+                sig = np.zeros(n)
+                for semi in chord + (12,):
+                    f = hz(root + semi)
+                    sig += np.sign(np.sin(2 * np.pi * f * tt)) * .4 + np.sin(2 * np.pi * 2 * f * tt) * .3
+                sig = np.convolve(sig, np.ones(6) / 6, "same")
+                add(sig * _env(n, .08) * .045, t + off)
+    # viradas de caixa (acelerando) + subida de ruído
+    for r in rolls:
+        t0 = r - 2 * beat
+        k, step = 0, beat / 2
+        tt_ = t0
+        while tt_ < r - 1e-3:
+            n = int(.1 * SR)
+            add(noise(n, 4) * _env(n, .04) * (.15 + .2 * (tt_ - t0) / (2 * beat)), tt_)
+            step = beat / 2 if tt_ - t0 < beat else beat / 4 if tt_ - t0 < 1.5 * beat else beat / 8
+            tt_ += step
+        n = int(2 * beat * SR)
+        add(noise(n, 30) * np.linspace(0, 1, n) ** 2 * .15, t0)
+        n = int(.8 * SR)
+        add(noise(n, 60) * _env(n, .3) * .2, r)  # impacto
+    # 'swish' nas trocas de cena
     for c in cortes:
-        n = int(.5 * SR)
-        x = rng.uniform(-1, 1, n)
+        n = int(.3 * SR)
         w = np.sin(np.linspace(0, np.pi, n)) ** 2
-        add((x - np.convolve(x, np.ones(40) / 40, "same")) * w * .08, c - .25)
-    fade = int(1.2 * SR)
+        add(noise(n, 20) * w * .1, c - .15)
+    out = out[:int(dur * SR)]
+    fade = int(1.0 * SR)
     out[-fade:] *= np.linspace(1, 0, fade)
-    out[:int(.3 * SR)] *= np.linspace(0, 1, int(.3 * SR))
-    out = np.tanh(out * 1.4)
-    return out / max(1e-6, np.abs(out).max()) * .88
+    out = np.tanh(out * 1.6)
+    return out / max(1e-6, np.abs(out).max()) * .9
 
 
 # --------------------------------------------------------------- roteiro
 
+BPM = 128
+BEAT = 60 / BPM
+JOGOS = ["Espinhos", "Empilha", "Bolhas", "Hélice", "Cobrinha", "Órbita", "Quebra Blocos",
+         "Trampolim", "Reflexo", "Canhão", "Ricochete", "Zigue-Zague", "Boliche", "Troca Cor",
+         "Pula Corda", "Gravidade"]
+
+
 def roteiro():
+    b = BEAT
     return [
-        (4.2, cena_intro()),
-        (4.2, cena_jogo("modo", "30 jogos rápidos", "partidas de 1 minuto, de reflexo, lógica e precisão",
-                        cel("Espinhos", .3), "dir", nome="Espinhos", seed=2)),
-        (4.2, cena_pc("beneficio", "sem baixar nada", "roda no navegador do celular e do PC",
-                      pc("Quebra Blocos", .4), chips=("celular", "PC"))),
-        (3.8, cena_jogo("modo", "um jogo diferente a cada partida", "Empilha, Cobrinha, Bolhas, Hélice…",
-                        cel("Empilha", .4), "esq", nome="Empilha", seed=4)),
-        (4.5, cena_arte("ranked", "modo competitivo com patentes", "sobe de Ouro até Diamante",
-                        arte("modelo_6_ranking_competitivo/slide_02.jpg"), "dir",
-                        chips=("Diamante", "Rubi", "Esmeralda", "Safira"), seed=6,
-                        cor=(255, 110, 150))),
-        (4.5, cena_duelo("modo", "batalha online", "desafia teus amigos ao vivo",
-                         cel("Reflexo", .3), g.at(g.game(0, "Reflexo")["celular"], .75))),
-        (4.2, cena_arte("ganhos", "recompensas todo dia", "volta todo dia e ganha mais",
-                        arte_diarias(), "esq", seed=8, cor=(255, 206, 64))),
-        (3.6, cena_jogo("modo", "partidas que viciam", "e cada recorde vale ponto",
-                        cel("Bolhas", .5), "dir", nome="Bolhas", seed=10)),
-        (4.2, cena_arte("ranked", "ranking geral e de cada jogo", "teu recorde soma no ranking",
-                        arte("modelo_7_desafio_do_recorde/slide_03.jpg"), "esq", seed=12,
-                        cor=(255, 110, 150))),
-        (4.2, cena_arte("ganhos", "passe de batalha", "30 níveis com trilha grátis e premium",
-                        arte("modelo_5_passe_de_batalha/slide_02.jpg"), "dir", seed=14,
-                        cor=(255, 206, 64))),
-        (3.6, cena_jogo("modo", "pra todo tipo de jogador", "do relaxante ao mais difícil",
-                        cel("Hélice", .4), "esq", nome="Hélice", seed=16)),
-        (4.0, cena_arte("ganhos", "+90 skins pra tua bolinha", "lendárias, épicas e raras",
-                        arte("modelo_3_skins/slide_02.jpg"), "dir", seed=18, cor=(255, 206, 64))),
-        (3.6, cena_jogo("beneficio", "itens exclusivos no cadastro", "é só criar a conta",
-                        cel("Trampolim", .4), "esq", nome="Trampolim", seed=20,
-                        chips=("itens raros", "100% grátis"))),
-        (6.5, cena_cta()),
+        (16 * 2 * b / 2, cena_montagem(JOGOS, b)),
+        (6 * b, cena_pc("beneficio", "sem baixar nada", "roda no navegador do celular e do PC",
+                        pc("Quebra Blocos", .4), chips=("celular", "PC"))),
+        (6 * b, cena_arte("ranked", "modo competitivo com patentes", "sobe de Ouro até Diamante",
+                          arte("modelo_6_ranking_competitivo/slide_02.jpg"), "dir",
+                          chips=("Diamante", "Rubi", "Esmeralda", "Safira"), seed=6,
+                          cor=(255, 110, 150))),
+        (6 * b, cena_duelo("modo", "batalha online", "desafia teus amigos ao vivo",
+                           cel("Reflexo", .3), g.at(g.game(0, "Reflexo")["celular"], .75))),
+        (6 * b, cena_arte("ganhos", "recompensas todo dia", "volta todo dia e ganha mais",
+                          arte_diarias(), "esq", seed=8, cor=(255, 206, 64))),
+        (6 * b, cena_arte("ranked", "ranking geral e de cada jogo", "teu recorde soma no ranking",
+                          arte("modelo_7_desafio_do_recorde/slide_03.jpg"), "esq", seed=12,
+                          cor=(255, 110, 150))),
+        (6 * b, cena_arte("ganhos", "passe de batalha", "30 níveis com trilha grátis e premium",
+                          arte("modelo_5_passe_de_batalha/slide_02.jpg"), "dir", seed=14,
+                          cor=(255, 206, 64))),
+        (6 * b, cena_jogo("modo", "pra todo tipo de jogador", "do relaxante ao mais difícil",
+                          cel("Hélice", .4), "esq", nome="Hélice", seed=16)),
+        (6 * b, cena_arte("ganhos", "+90 skins pra tua bolinha", "lendárias, épicas e raras",
+                          arte("modelo_3_skins/slide_02.jpg"), "dir", seed=18, cor=(255, 206, 64))),
+        (6 * b, cena_jogo("beneficio", "itens exclusivos no cadastro", "é só criar a conta",
+                          cel("Trampolim", .4), "esq", nome="Trampolim", seed=20,
+                          chips=("itens raros", "100% grátis"))),
+        (12 * b, cena_cta()),
     ]
 
 
@@ -425,7 +454,7 @@ def render():
     os.makedirs(OUT, exist_ok=True)
     out = os.path.join(OUT, "kavix_convite_grupo.mp4")
     wav = out + ".wav"
-    g.write_wav(wav, musica(dur, starts[1:]))
+    g.write_wav(wav, musica(dur, starts[1:], drop=starts[1], bpm=BPM))
     cmd = ["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24",
            "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-i", wav, "-c:v", "libx264",
            "-preset", "medium", "-crf", "20", "-maxrate", "8M", "-bufsize", "16M",
@@ -438,10 +467,11 @@ def render():
         i = max(k for k, s in enumerate(starts) if s <= tt)
         im = Image.new("RGBA", (W, H), (8, 7, 20, 255))
         cenas[i][1](im, tt - starts[i], cenas[i][0])
-        if i > 0 and tt - starts[i] < FADE:
-            prev = Image.new("RGBA", (W, H), (8, 7, 20, 255))
-            cenas[i - 1][1](prev, cenas[i - 1][0] - FADE + (tt - starts[i]), cenas[i - 1][0])
-            im = Image.blend(prev, im, (tt - starts[i]) / FADE)
+        lt = tt - starts[i]
+        if i > 0 and lt < PUNCH:
+            z = 1 + 0.07 * (1 - lt / PUNCH) ** 2
+            zw, zh = int(W / z), int(H / z)
+            im = im.crop(((W - zw) // 2, (H - zh) // 2, (W + zw) // 2, (H + zh) // 2)).resize((W, H))
         proc.stdin.write(im.convert("RGB").tobytes())
         g.close_idle_clips()
     proc.stdin.close()
