@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitor de Preços</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>📉</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">📉 Monitor de Preços</div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="products" aria-selected="true">Produtos</button>
+      <button role="tab" data-tab="coupons">Cupons</button>
+      <button role="tab" data-tab="alerts">Alertas</button>
+      <button role="tab" data-tab="settings">Configurações</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="tab-products" class="tab">
+      <form id="add-form" class="card add">
+        <h2>Monitorar um produto</h2>
+        <label class="grow">Link do produto
+          <input name="url" type="url" required placeholder="https://www.kabum.com.br/produto/... (PS5, TV, etc.)">
+        </label>
+        <div class="row">
+          <label>Preço-alvo (R$)
+            <input name="targetPrice" inputmode="decimal" placeholder="ex: 3200">
+          </label>
+          <label>Avisar quedas a partir de (%)
+            <input name="dropPercent" inputmode="decimal" placeholder="padrão">
+          </label>
+          <button class="primary" type="submit">Adicionar</button>
+        </div>
+        <details>
+          <summary>Avançado</summary>
+          <label>Nome (opcional)<input name="name" placeholder="PlayStation 5 Slim"></label>
+          <label>Regex do preço (se a loja não for reconhecida)<input name="customRegex" placeholder='"price":\s*([\d.]+)'></label>
+        </details>
+        <p class="hint">Dica: adicione o mesmo produto em várias lojas (Amazon, KaBuM!, Magalu, Mercado Livre…) para comparar.</p>
+      </form>
+
+      <div class="toolbar">
+        <h2>Seus produtos</h2>
+        <div>
+          <button id="notif-btn" class="ghost" hidden>🔔 Ativar notificações no navegador</button>
+          <button id="check-all" class="ghost">↻ Verificar todos</button>
+        </div>
+      </div>
+      <div id="compare"></div>
+      <div id="products" class="grid"></div>
+    </section>
+
+    <section id="tab-coupons" class="tab" hidden>
+      <div class="card">
+        <h2>Buscar cupons</h2>
+        <form id="coupon-search" class="row">
+          <label class="grow">Loja ou link
+            <input name="q" required placeholder="kabum, amazon, https://www.magazineluiza.com.br/..." list="store-list">
+            <datalist id="store-list"></datalist>
+          </label>
+          <button class="primary" type="submit">Buscar</button>
+        </form>
+        <p id="coupon-report" class="hint"></p>
+        <p class="hint">Os cupons vêm de sites agregadores e da página do produto. Expirados são descartados automaticamente,
+          mas só o checkout confirma se funciona — vote ✓/✗ depois de testar para manter a lista confiável.</p>
+      </div>
+      <div class="card">
+        <form id="coupon-add" class="row">
+          <label>Loja<input name="store" required placeholder="kabum"></label>
+          <label>Código<input name="code" required placeholder="PS5OFF10"></label>
+          <label class="grow">Descrição<input name="description" placeholder="10% em consoles"></label>
+          <label>Validade<input name="expiresAt" type="date"></label>
+          <button type="submit">Adicionar manual</button>
+        </form>
+      </div>
+      <div class="toolbar">
+        <label>Filtrar loja <select id="coupon-filter"><option value="">Todas</option></select></label>
+        <label class="check"><input type="checkbox" id="coupon-expired"> mostrar expirados</label>
+      </div>
+      <div id="coupons" class="list"></div>
+    </section>
+
+    <section id="tab-alerts" class="tab" hidden>
+      <div class="toolbar"><h2>Histórico de alertas</h2></div>
+      <div id="alerts" class="list"></div>
+    </section>
+
+    <section id="tab-settings" class="tab" hidden>
+      <form id="settings-form" class="card settings">
+        <h2>Verificação</h2>
+        <div class="row">
+          <label>Intervalo de preços (min)<input name="checkIntervalMinutes" type="number" min="5"></label>
+          <label>Intervalo de cupons (h)<input name="couponIntervalHours" type="number" min="1"></label>
+          <label>Queda mínima padrão (%)<input name="defaultDropPercent" type="number" min="0" step="0.5"></label>
+        </div>
+        <h2>Notificações no celular</h2>
+        <p class="hint">Mais simples: instale o app <b>ntfy</b> (Android/iOS), assine um tópico com nome difícil de adivinhar e coloque-o abaixo.</p>
+        <div class="row">
+          <label>Servidor ntfy<input name="ntfyServer"></label>
+          <label class="grow">Tópico ntfy<input name="ntfyTopic" placeholder="ps5-alerta-x8k2"></label>
+        </div>
+        <div class="row">
+          <label class="grow">Telegram — token do bot<input name="telegramBotToken" autocomplete="off"></label>
+          <label>Telegram — chat id<input name="telegramChatId"></label>
+        </div>
+        <label>Webhook (Discord, Slack, n8n…)<input name="webhookUrl" type="url"></label>
+        <h2>Fontes de cupons</h2>
+        <label>Uma URL por linha. Use {slug} para o nome da loja (ex.: kabum) e {domain} para o domínio.
+          <textarea name="couponSources" rows="4"></textarea>
+        </label>
+        <div class="row">
+          <button class="primary" type="submit">Salvar</button>
+          <button type="button" id="test-notify">Enviar notificação de teste</button>
+        </div>
+        <p id="settings-msg" class="hint" role="status"></p>
+      </form>
+    </section>
+  </main>
+
+  <dialog id="detail">
+    <div class="dialog-head">
+      <h2 id="d-title"></h2>
+      <button class="ghost" id="d-close" aria-label="Fechar">✕</button>
+    </div>
+    <div id="d-body"></div>
+  </dialog>
+
+  <div id="toasts" aria-live="polite"></div>
+  <script src="app.js" type="module"></script>
+</body>
+</html>

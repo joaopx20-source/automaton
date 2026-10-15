@@ -1,0 +1,12 @@
+{
+  "name": "monitor-de-precos",
+  "version": "1.0.0",
+  "description": "Monitor de preços com histórico de quedas, alertas e busca de cupons",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  }
+}
