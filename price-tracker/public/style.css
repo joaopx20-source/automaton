@@ -145,3 +145,25 @@ dialog::backdrop { background: rgb(0 0 0 / .45); }
   .price { font-size: 1.4rem; }
 }
 .btnlink { display: inline-block; padding: .3rem .6rem; font-size: .85rem; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); background: var(--surface-2); }
+
+.search h2 { margin-bottom: .5rem; }
+.best-offer { border-color: var(--good); }
+.best-offer .k { color: var(--good); font-weight: 600; font-size: .85rem; margin-bottom: .5rem; }
+.best-offer .head { display: flex; gap: 1rem; align-items: center; margin-bottom: .75rem; }
+.best-offer img { width: 88px; height: 88px; object-fit: contain; background: #fff; border-radius: 8px; flex: none; }
+.best-offer .price { font-size: 2rem; color: var(--good); }
+.btnlink.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.watch { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--grid); }
+.scroll { overflow-x: auto; }
+.title-cell { min-width: 220px; }
+.nowrap { white-space: nowrap; }
+.nowrap .small { margin-left: .25rem; }
+@media (max-width: 560px) {
+  .offers thead { display: none; }
+  .offers tr { display: grid; grid-template-columns: auto 1fr; gap: .2rem .75rem; padding: .6rem 0; border-bottom: 1px solid var(--grid); }
+  .offers td { border: 0; padding: 0; text-align: left; }
+  .offers td.num { font-weight: 700; }
+  .offers .title-cell, .offers .nowrap { grid-column: 1 / -1; min-width: 0; }
+  .offers .nowrap .btnlink { margin-right: .25rem; }
+  .best-offer .price { font-size: 1.7rem; }
+}

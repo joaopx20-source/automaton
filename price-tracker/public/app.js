@@ -66,7 +66,8 @@ function productCard(p) {
       ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}
       <div>
         <div class="name" title="${esc(p.name)}">${esc(p.name || p.url)}</div>
-        <div class="store">${esc(p.storeName)}${p.active ? "" : " · pausado"}${p.available === false ? " · esgotado" : ""}</div>
+        <div class="store">${p.query ? "Mais barato agora: " : ""}${esc(p.storeName)}${p.active ? "" : " · pausado"}${p.available === false ? " · esgotado" : ""}</div>
+        ${p.query && p.bestTitle ? `<div class="store" title="${esc(p.bestTitle)}">${esc(p.bestTitle.slice(0, 80))}</div>` : ""}
       </div>
     </div>
     <div class="price">${brl(p.currentPrice)}</div>
@@ -86,7 +87,7 @@ function productCard(p) {
       <button class="small primary" data-act="open">Histórico</button>
       <button class="small" data-act="check">↻ Verificar</button>
       <button class="small" data-act="coupons">🎟️ Cupons</button>
-      <a class="btnlink" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Abrir loja ↗</a>
+      ${p.url ? `<a class="btnlink" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Abrir loja ↗</a>` : ""}
     </div>
   </article>`;
 }
@@ -157,6 +158,106 @@ $("#check-all").addEventListener("click", (e) => busy(e.target, async () => {
   await api("/api/check-all", { method: "POST" });
   toast("Verificando todos os produtos… os cards atualizam sozinhos.");
 }));
+
+// ---------- Busca por nome
+let lastSearch = null;
+
+function offerRow(o, i) {
+  return `<tr>
+    <td class="num ${i === 0 ? "best" : ""}">${brl(o.price)}${i === 0 ? " ★" : ""}</td>
+    <td>${esc(o.storeName)}</td>
+    <td class="title-cell">${esc(o.title)}${o.reason ? ` <span class="badge warn">${esc(o.reason)}</span>` : ""}</td>
+    <td class="nowrap"><a class="btnlink" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">Abrir ↗</a>
+      ${o.url && o.url !== o.searchUrl ? `<button class="small" data-track="${esc(o.url)}">Monitorar</button>` : ""}</td>
+  </tr>`;
+}
+
+function renderSearch(r) {
+  const el = $("#search-results");
+  const failed = r.sources.filter((s) => s.error);
+  const sourcesLine = r.sources.map((s) => `${esc(s.source)}: ${s.error ? "✗" : s.count}`).join(" · ");
+  if (!r.best) {
+    el.innerHTML = `<div class="card"><h2>Nenhuma oferta encontrada para "${esc(r.query)}"</h2>
+      <p class="hint">${failed.length ? `${failed.length} de ${r.sources.length} lojas não responderam (podem ter bloqueado a consulta).` : "Tente um termo mais simples."}</p>
+      <p class="hint">${sourcesLine}</p>
+      ${r.hidden.length ? `<details><summary>${r.hidden.length} anúncio(s) escondido(s) pelos filtros</summary><div class="scroll"><table class="table"><tbody>${r.hidden.map(offerRow).join("")}</tbody></table></div></details>` : ""}</div>`;
+    return;
+  }
+  const b = r.best;
+  el.innerHTML = `<div class="card best-offer">
+      <div class="k">Menor preço encontrado para "${esc(r.query)}"</div>
+      <div class="head">
+        ${b.image ? `<img src="${esc(b.image)}" alt="" referrerpolicy="no-referrer">` : ""}
+        <div>
+          <div class="price">${brl(b.price)}</div>
+          <div class="name">${esc(b.title)}</div>
+          <div class="store">${esc(b.storeName)}${r.median ? ` · preço típico ${brl(r.median)} (${Math.round((1 - b.price / r.median) * 100)}% abaixo)` : ""}</div>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btnlink primary" href="${esc(b.url)}" target="_blank" rel="noopener noreferrer">Ver na loja ↗</a>
+        <button class="small" data-coupons="${esc(b.url)}">🎟️ Cupons: ${esc(b.storeName)}</button>
+      </div>
+      <form id="watch-search" class="row watch">
+        <label>Avise-me quando a busca achar por menos de (R$)<input name="targetPrice" inputmode="decimal" placeholder="${Math.floor(b.price * 0.95)}"></label>
+        <button type="submit">🔔 Monitorar esta busca</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>${r.results.length} oferta(s), da mais barata para a mais cara</h2>
+      <div class="scroll"><table class="table offers"><thead><tr><th class="num">Preço</th><th>Loja</th><th>Anúncio</th><th></th></tr></thead>
+      <tbody>${r.results.map(offerRow).join("")}</tbody></table></div>
+      ${r.hidden.length ? `<details><summary>${r.hidden.length} anúncio(s) escondido(s): acessórios, usados ou preço suspeito</summary>
+        <div class="scroll"><table class="table offers"><tbody>${r.hidden.map(offerRow).join("")}</tbody></table></div></details>` : ""}
+      <p class="hint">Lojas consultadas — ${sourcesLine}${failed.length ? ` · ✗ = não respondeu ou bloqueou a consulta` : ""}</p>
+    </div>`;
+
+  $("#watch-search").onsubmit = async (e) => {
+    e.preventDefault();
+    const f = new FormData($("#search-form"));
+    await busy(e.submitter, async () => {
+      const p = await api("/api/products", { method: "POST", body: {
+        query: r.query, targetPrice: new FormData(e.target).get("targetPrice"), minPrice: f.get("minPrice"), maxPrice: f.get("maxPrice") } });
+      upsert(p);
+      toast(`Monitorando a busca "${r.query}" em todas as lojas.`);
+    });
+  };
+}
+
+$("#search-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const body = { query: f.get("query"), minPrice: f.get("minPrice"), maxPrice: f.get("maxPrice"),
+    includeUsed: f.has("includeUsed"), includeAccessories: f.has("includeAccessories") };
+  const btn = e.submitter;
+  await busy(btn, async () => {
+    btn.textContent = "Buscando nas lojas…";
+    $("#search-results").innerHTML = `<div class="card hint">Consultando Mercado Livre, KaBuM!, Amazon, Magalu e outras… pode levar até 20 segundos.</div>`;
+    try {
+      lastSearch = await api("/api/search", { method: "POST", body });
+      renderSearch(lastSearch);
+    } catch (err) {
+      $("#search-results").innerHTML = "";
+      throw err;
+    } finally { btn.textContent = "Buscar em todas as lojas"; }
+  });
+});
+
+$("#search-results").addEventListener("click", async (e) => {
+  const track = e.target.closest("button[data-track]");
+  const coupons = e.target.closest("button[data-coupons]");
+  if (track) await busy(track, async () => {
+    const p = await api("/api/products", { method: "POST", body: { url: track.dataset.track } });
+    upsert(p);
+    toast(`Monitorando: ${p.name ?? "produto"} (${brl(p.currentPrice)})`);
+  });
+  if (coupons) await busy(coupons, async () => {
+    const r = await api("/api/coupons/search", { method: "POST", body: { url: coupons.dataset.coupons } });
+    $("#coupon-filter").value = r.store.slug;
+    showTab("coupons");
+    reportCoupons(r);
+  });
+});
 
 // ---------- Detalhe + gráfico
 const CH = { W: 800, H: 280, L: 70, R: 16, T: 16, B: 28 };
@@ -402,6 +503,7 @@ $("#settings-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const body = Object.fromEntries(new FormData(e.target));
   body.couponSources = body.couponSources.split("\n");
+  body.searchSources = body.searchSources.split("\n");
   await busy(e.submitter, async () => { await api("/api/settings", { method: "PUT", body }); $("#settings-msg").textContent = "Salvo."; loadSettings(); });
 });
 $("#test-notify").addEventListener("click", (e) => busy(e.target, async () => {

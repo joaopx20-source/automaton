@@ -3,16 +3,24 @@ import { extractProduct } from "./price.js";
 import { analyze } from "./stats.js";
 import { storeFromUrl, searchCoupons } from "./coupons.js";
 import { newId } from "./db.js";
+import { searchProduct } from "./search.js";
 
 const HOUR = 3_600_000;
 export const brl = (n) => n == null ? "—" : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function createProduct(store, { url, name, targetPrice, dropPercent, customRegex }) {
-  const parsed = new URL(url); // lança se inválida
-  if (!/^https?:$/.test(parsed.protocol)) throw new Error("URL precisa começar com http(s)://");
-  const info = storeFromUrl(url);
+export function createProduct(store, { url, query, name, targetPrice, dropPercent, customRegex, minPrice, maxPrice }) {
+  let info = { slug: "busca", name: "Várias lojas" };
+  if (query) {
+    query = String(query).trim().slice(0, 120);
+    url = null;
+  } else {
+    const parsed = new URL(url); // lança se inválida
+    if (!/^https?:$/.test(parsed.protocol)) throw new Error("URL precisa começar com http(s)://");
+    info = storeFromUrl(url);
+  }
   const p = {
-    id: newId(), url, name: name || null, image: null,
+    id: newId(), url, query: query || null, name: name || (query ? `🔎 ${query}` : null), image: null,
+    minPrice: minPrice ?? null, maxPrice: maxPrice ?? null,
     store: info.slug, storeName: info.name,
     targetPrice: targetPrice ? Number(targetPrice) : null,
     dropPercent: dropPercent === "" || dropPercent == null ? null : Number(dropPercent),
@@ -72,6 +80,7 @@ export function createMonitor({ store, notifier, fetchPage }) {
     if (running.has(p.id)) return p;
     running.add(p.id);
     try {
+      if (p.query) return await checkSearch(p, { notify });
       const html = await fetchPage(p.url);
       const data = extractProduct(html, p.url, { customRegex: p.customRegex });
       if (!p.name && data.title) p.name = data.title.slice(0, 140);
@@ -91,6 +100,22 @@ export function createMonitor({ store, notifier, fetchPage }) {
     return p;
   }
 
+  /** Busca salva: o "preço" é a oferta mais barata encontrada entre todas as lojas. */
+  async function checkSearch(p, { notify }) {
+    const r = await searchProduct(p.query, { sources: store.settings.searchSources, fetchPage, minPrice: p.minPrice, maxPrice: p.maxPrice });
+    p.lastSources = r.sources;
+    if (!r.best) throw new Error(`Nenhuma oferta encontrada (${r.sources.filter((s) => s.error).length} de ${r.sources.length} lojas não responderam).`);
+    p.url = r.best.url;
+    p.store = r.best.store;
+    p.storeName = r.best.storeName;
+    p.bestTitle = r.best.title;
+    p.image = r.best.image || p.image;
+    p.topOffers = r.results.slice(0, 5).map(({ title, price, url, storeName }) => ({ title, price, url, storeName }));
+    const events = recordPrice(store, p, { price: r.best.price, available: true, source: r.best.storeName });
+    if (notify) for (const e of events) await notifier.send({ ...e, url: p.url, productId: p.id });
+    return p;
+  }
+
   async function checkAll() {
     const list = store.products.filter((p) => p.active);
     // Concorrência 2 + pausa curta para não sobrecarregar as lojas.
@@ -102,7 +127,7 @@ export function createMonitor({ store, notifier, fetchPage }) {
 
   async function refreshCoupons() {
     const seen = new Map();
-    for (const p of store.products.filter((x) => x.active)) {
+    for (const p of store.products.filter((x) => x.active && x.url)) {
       if (!seen.has(p.store)) seen.set(p.store, p);
     }
     for (const p of seen.values()) {

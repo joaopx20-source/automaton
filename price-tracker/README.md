@@ -8,7 +8,27 @@ um PS5 pelo menor preço.
 - Dados salvos em `data/db.json`.
 - Funciona no PC, no celular (pelo navegador) e em qualquer servidor/VPS.
 
-## Como usar
+## Buscar o menor preço (por nome)
+
+Digite o produto em **🔎 Buscar o menor preço** (ex.: `PS5 Slim`). A ferramenta consulta ao mesmo
+tempo Mercado Livre, KaBuM!, Amazon, Magalu, Casas Bahia, Buscapé e Zoom e devolve:
+
+- a **oferta mais barata** em destaque, com link direto e o "preço típico" (mediana) para comparar;
+- todas as ofertas **da mais barata para a mais cara**;
+- anúncios **escondidos** de propósito — acessórios ("capa para PS5"), usados/recondicionados e preços
+  suspeitos (muito abaixo da média). Dá para ver a lista e incluir usados/acessórios nos *Filtros*;
+- quais lojas responderam e quais bloquearam a consulta.
+
+"PS5" também encontra "PlayStation 5" (e vice-versa). Use *preço mínimo* para cortar acessórios que
+escapem do filtro.
+
+Clique em **🔔 Monitorar esta busca** para salvar: a cada verificação a busca roda de novo em todas as
+lojas, o histórico guarda o menor preço encontrado e você é avisado quando ele cair ou chegar no alvo
+— não importa em qual loja. Ou clique em **Monitorar** numa oferta para acompanhar só aquele anúncio.
+
+As lojas da busca ficam em *Configurações → Lojas da busca* (uma URL por linha, com `{q}` ou `{q-dash}`).
+
+## Monitorar um link
 
 ```bash
 cd price-tracker
@@ -93,6 +113,8 @@ Coloque atrás de HTTPS (Caddy, Nginx ou o proxy da própria plataforma).
 - **Lojas que bloqueiam robôs** (principalmente a Amazon) às vezes respondem com captcha. O produto
   mostra o aviso; tente de novo mais tarde ou use **"Registrar preço manualmente"** no histórico.
 - Se uma loja não for reconhecida, use em *Avançado* uma **regex do preço**, ex.: `"price":\s*([\d.]+)`.
+- As páginas de busca das lojas mudam com frequência; se uma loja passar a mostrar 0 resultados,
+  ela provavelmente mudou o layout ou bloqueou a consulta — as outras continuam funcionando.
 - A leitura do preço usa, nesta ordem: regex personalizada → dados estruturados (JSON-LD) → meta
   tags → regras para Amazon / Mercado Livre / KaBuM! → texto "R$" da página (ignorando parcelas).
 - O intervalo mínimo de verificação é 5 minutos; o padrão de 60 minutos evita bloqueios.

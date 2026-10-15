@@ -20,6 +20,26 @@
 
   <main>
     <section id="tab-products" class="tab">
+      <form id="search-form" class="card search">
+        <h2>🔎 Buscar o menor preço</h2>
+        <div class="row">
+          <label class="grow">Produto
+            <input name="query" required minlength="2" placeholder="ex: PS5 Slim, iPhone 15 128GB, Air Fryer Mondial" autocomplete="off">
+          </label>
+          <button class="primary" type="submit">Buscar em todas as lojas</button>
+        </div>
+        <details>
+          <summary>Filtros</summary>
+          <div class="row">
+            <label>Preço mínimo (R$)<input name="minPrice" inputmode="decimal" placeholder="ex: 2500"></label>
+            <label>Preço máximo (R$)<input name="maxPrice" inputmode="decimal"></label>
+            <label class="check"><input type="checkbox" name="includeUsed"> incluir usados/recondicionados</label>
+            <label class="check"><input type="checkbox" name="includeAccessories"> incluir acessórios</label>
+          </div>
+        </details>
+      </form>
+      <div id="search-results"></div>
+
       <form id="add-form" class="card add">
         <h2>Monitorar um produto</h2>
         <label class="grow">Link do produto
@@ -107,6 +127,10 @@
           <label>Telegram — chat id<input name="telegramChatId"></label>
         </div>
         <label>Webhook (Discord, Slack, n8n…)<input name="webhookUrl" type="url"></label>
+        <h2>Lojas da busca</h2>
+        <label>Uma URL de busca por linha. Use {q} para o termo e {q-dash} para o termo-com-hifens.
+          <textarea name="searchSources" rows="6"></textarea>
+        </label>
         <h2>Fontes de cupons</h2>
         <label>Uma URL por linha. Use {slug} para o nome da loja (ex.: kabum) e {domain} para o domínio.
           <textarea name="couponSources" rows="4"></textarea>

@@ -12,6 +12,16 @@ export const DEFAULT_SETTINGS = {
   telegramBotToken: "",
   telegramChatId: "",
   webhookUrl: "",
+  // Páginas de busca: {q} = termo, {q-dash} = termo-com-hifens.
+  searchSources: [
+    "https://lista.mercadolivre.com.br/{q-dash}",
+    "https://www.kabum.com.br/busca/{q-dash}",
+    "https://www.amazon.com.br/s?k={q}",
+    "https://www.magazineluiza.com.br/busca/{q}/",
+    "https://www.casasbahia.com.br/{q-dash}/b",
+    "https://www.buscape.com.br/search?q={q}",
+    "https://www.zoom.com.br/search?q={q}",
+  ],
   couponSources: [
     "https://www.cuponomia.com.br/desconto/{slug}",
     "https://www.meliuz.com.br/desconto/cupom-{slug}",

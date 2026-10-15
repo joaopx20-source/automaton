@@ -10,6 +10,7 @@ import { fetchPage } from "./lib/fetcher.js";
 import { createNotifier } from "./lib/notify.js";
 import { createMonitor, createProduct, recordPrice, serialize } from "./lib/monitor.js";
 import { storeFromUrl, searchCoupons, couponStatus, isPlausibleCode } from "./lib/coupons.js";
+import { searchProduct } from "./lib/search.js";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(ROOT, "public");
@@ -45,10 +46,11 @@ export function createApp({ store, fetchPageImpl = fetchPage, password = process
   // ---- Produtos
   route("GET", "/api/products", () => store.products.map(serialize));
   route("POST", "/api/products", async ({ body }) => {
-    if (!body.url) throw new HttpError(400, "Informe a URL do produto");
+    if (!body.url && !body.query) throw new HttpError(400, "Informe a URL do produto ou o termo de busca");
     let p;
     try {
-      p = createProduct(store, { ...body, targetPrice: toNumber(body.targetPrice, "preço-alvo"), dropPercent: toNumber(body.dropPercent, "queda %") });
+      p = createProduct(store, { ...body, targetPrice: toNumber(body.targetPrice, "preço-alvo"), dropPercent: toNumber(body.dropPercent, "queda %"),
+        minPrice: toNumber(body.minPrice, "preço mínimo"), maxPrice: toNumber(body.maxPrice, "preço máximo") });
     } catch (e) {
       throw e instanceof HttpError ? e : new HttpError(400, "URL inválida");
     }
@@ -84,6 +86,21 @@ export function createApp({ store, fetchPageImpl = fetchPage, password = process
   route("POST", "/api/check-all", () => {
     monitor.checkAll().catch(console.error);
     return { started: true };
+  });
+
+  // ---- Busca por nome em várias lojas
+  route("POST", "/api/search", async ({ body }) => {
+    const query = String(body.query ?? "").trim();
+    if (query.length < 2) throw new HttpError(400, "Digite o nome do produto");
+    try {
+      return await searchProduct(query.slice(0, 120), {
+        sources: store.settings.searchSources, fetchPage: fetchPageImpl,
+        minPrice: toNumber(body.minPrice, "preço mínimo"), maxPrice: toNumber(body.maxPrice, "preço máximo"),
+        includeUsed: Boolean(body.includeUsed), includeAccessories: Boolean(body.includeAccessories),
+      });
+    } catch (e) {
+      throw e instanceof HttpError ? e : new HttpError(400, e.message);
+    }
   });
 
   // ---- Cupons
@@ -143,7 +160,7 @@ export function createApp({ store, fetchPageImpl = fetchPage, password = process
     for (const k of Object.keys(DEFAULT_SETTINGS)) {
       if (!(k in body)) continue;
       if (SECRET_KEYS.includes(k) && String(body[k]).startsWith("••••")) continue;
-      if (k === "couponSources") {
+      if (k === "couponSources" || k === "searchSources") {
         store.settings[k] = [body[k]].flat().map(String).map((s) => s.trim()).filter((s) => /^https?:\/\//.test(s));
       } else if (typeof DEFAULT_SETTINGS[k] === "number") {
         store.settings[k] = toNumber(body[k], k) ?? DEFAULT_SETTINGS[k];

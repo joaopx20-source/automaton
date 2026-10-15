@@ -23,6 +23,8 @@ const STORES = {
   "playstation.com": ["playstation-store", "PlayStation Store"],
   "girafa.com.br": ["girafa", "Girafa"],
   "pichau.com.br": ["pichau", "Pichau"],
+  "buscape.com.br": ["buscape", "Buscapé"],
+  "zoom.com.br": ["zoom", "Zoom"],
   "terabyteshop.com.br": ["terabyte", "Terabyte"],
 };
 
