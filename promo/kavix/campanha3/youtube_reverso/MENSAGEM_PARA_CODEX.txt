@@ -1,0 +1,26 @@
+Preciso que você agende no meu canal do YouTube (KAVIX ARCADE) os 300 Shorts da
+campanha 3, DE TRÁS PARA FRENTE: começa pelo vídeo 300 e termina no vídeo 1.
+Eu já estou logado no YouTube Studio no navegador. NÃO use o Buffer.
+
+ARQUIVOS:
+- Planilha: https://github.com/joaopx20-source/automaton/raw/claude/kavix-promotional-videos-e6f1vd/promo/kavix/campanha3/youtube_reverso/calendario_youtube_reverso.xlsx
+- Mesmo conteúdo em JSON: https://github.com/joaopx20-source/automaton/raw/claude/kavix-promotional-videos-e6f1vd/promo/kavix/campanha3/youtube_reverso/plano_youtube_reverso.json
+- Cada linha tem o link do vídeo (.mp4) na coluna "Link do vídeo".
+
+AGENDA:
+- 4 vídeos por dia, às 09:00, 12:30, 17:00 e 20:30, HORÁRIO DE BRASÍLIA (UTC−3).
+- De 08/11/2026 até 21/01/2027 (75 dias).
+- Ordem: linha 1 da planilha = vídeo 300 (dia 1, 09:00) ... linha 300 = vídeo 1.
+
+COMO AGENDAR CADA LINHA (YouTube Studio):
+1. Criar → Enviar vídeos → escolha o .mp4 da linha.
+2. Título = coluna "Título YouTube"; Descrição = coluna "Descrição YouTube" (copie exatamente).
+3. Público: "Não, não é conteúdo para crianças".
+4. Visibilidade → Programar → data e hora da linha (fuso de Brasília).
+5. Confira antes se o vídeo já não está programado (não duplicar).
+6. Marque a coluna "Status" (agendado / erro).
+
+LIMITE DO YOUTUBE: se aparecer aviso de limite diário de envios, pare, anote em qual
+linha parou e continue no dia seguinte a partir dela (as datas já programadas não mudam).
+
+No final, me mande um resumo: quantos foram agendados e quais deram erro.

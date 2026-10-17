@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Agenda da campanha 2 só para o YouTube, de trás para frente (vídeo 100 → 1),
+"""Agenda de uma campanha só para o YouTube, de trás para frente (último vídeo → 1),
 4 vídeos por dia nos horários de sempre.
 
-Uso:  python3 promo/kavix/youtube_reverso.py [AAAA-MM-DD]   (padrão: amanhã)
-Saída: campanha2/youtube_reverso/ (planilha, JSON, CSV e mensagem para o Codex)
+Uso:  python3 promo/kavix/youtube_reverso.py [campanha] [AAAA-MM-DD]
+      (padrão: campanha 2, começando amanhã)
+Saída: campanhaN/youtube_reverso/ (planilha, JSON, CSV e mensagem para o Codex)
 """
 import csv
 import datetime as dt
@@ -16,12 +17,20 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(HERE, "campanha2", "plano_postagem.json")
-OUT = os.path.join(HERE, "campanha2", "youtube_reverso")
+CAMP = "2"
+SRC = OUT = BASE = None
 HORARIOS = ["09:00", "12:30", "17:00", "20:30"]
 POR_DIA = 4
-BASE = ("https://github.com/joaopx20-source/automaton/raw/"
-        "claude/kavix-promotional-videos-e6f1vd/promo/kavix/campanha2/youtube_reverso/")
+
+
+def configurar(camp):
+    global CAMP, SRC, OUT, BASE
+    CAMP = camp
+    pasta = "campanha" if camp == "1" else f"campanha{camp}"
+    SRC = os.path.join(HERE, pasta, "plano_postagem.json")
+    OUT = os.path.join(HERE, pasta, "youtube_reverso")
+    BASE = ("https://github.com/joaopx20-source/automaton/raw/"
+            f"claude/kavix-promotional-videos-e6f1vd/promo/kavix/{pasta}/youtube_reverso/")
 
 
 def gerar(inicio):
@@ -38,6 +47,7 @@ def gerar(inicio):
             "arquivo": p["arquivo"], "url_download": p["url_download"],
             "titulo_youtube": p["titulo_youtube"],
             "descricao_youtube": p["descricao_youtube"],
+            "legenda_redes": p["legenda_instagram_facebook"],
             "status": "pendente",
         })
     os.makedirs(OUT, exist_ok=True)
@@ -78,8 +88,8 @@ def gerar(inicio):
     wb.save(os.path.join(OUT, "calendario_youtube_reverso.xlsx"))
 
     fim = inicio + dt.timedelta(days=linhas[-1]["dia"] - 1)
-    msg = f"""Preciso que você agende no meu canal do YouTube (KAVIX ARCADE) os 100 Shorts da
-campanha 2, DE TRÁS PARA FRENTE: começa pelo vídeo 100 e termina no vídeo 1.
+    msg = f"""Preciso que você agende no meu canal do YouTube (KAVIX ARCADE) os {len(linhas)} Shorts da
+campanha {CAMP}, DE TRÁS PARA FRENTE: começa pelo vídeo {linhas[0]["video_n"]} e termina no vídeo 1.
 Eu já estou logado no YouTube Studio no navegador. NÃO use o Buffer.
 
 ARQUIVOS:
@@ -89,8 +99,8 @@ ARQUIVOS:
 
 AGENDA:
 - 4 vídeos por dia, às 09:00, 12:30, 17:00 e 20:30, HORÁRIO DE BRASÍLIA (UTC−3).
-- De {inicio.strftime('%d/%m/%Y')} até {fim.strftime('%d/%m/%Y')} (25 dias).
-- Ordem: linha 1 da planilha = vídeo 100 (dia 1, 09:00) ... linha 100 = vídeo 1.
+- De {inicio.strftime('%d/%m/%Y')} até {fim.strftime('%d/%m/%Y')} ({linhas[-1]['dia']} dias).
+- Ordem: linha 1 da planilha = vídeo {linhas[0]["video_n"]} (dia 1, 09:00) ... linha {len(linhas)} = vídeo 1.
 
 COMO AGENDAR CADA LINHA (YouTube Studio):
 1. Criar → Enviar vídeos → escolha o .mp4 da linha.
@@ -111,6 +121,8 @@ No final, me mande um resumo: quantos foram agendados e quais deram erro.
 
 
 if __name__ == "__main__":
-    ini = (dt.date.fromisoformat(sys.argv[1]) if len(sys.argv) > 1
+    args = sys.argv[1:]
+    configurar(args.pop(0) if args and args[0].isdigit() else "2")
+    ini = (dt.date.fromisoformat(args[0]) if args
            else dt.date.today() + dt.timedelta(days=1))
     gerar(ini)
