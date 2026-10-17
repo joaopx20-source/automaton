@@ -731,7 +731,14 @@ def handle_layer(u):
     return out
 
 
+# Campanhas sem cara de story/anúncio desligam o @perfil do topo e a barra de progresso.
+SHOW_HANDLE = [True]
+SHOW_PROGRESS = [True]
+
+
 def handle(img, c, alpha=1.0):
+    if not SHOW_HANDLE[0]:
+        return
     composite(img, set_alpha(handle_layer(c.u), alpha), 34 * c.u,
               (90 if c.vertical else 52) * c.u + c.top_off)
 
@@ -1329,7 +1336,8 @@ def render_frame(s, c, t):
         if a <= t < b:
             fn(img, t - a, b - a, c)
     if t < s["scenes"][-1][0]:
-        progress_bar(img, c, t, s["dur"])
+        if SHOW_PROGRESS[0]:
+            progress_bar(img, c, t, s["dur"])
     frame = img.convert("RGB")
     for ct in [a for a, _, _ in s["scenes"][1:]]:
         dt = t - ct
