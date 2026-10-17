@@ -3,3 +3,4 @@ __pycache__/
 gameplay/celular.*
 gameplay/pc.*
 *.wav
+*.tmp.mp4
